@@ -1,0 +1,254 @@
+openapi: 3.0.0
+info:
+  title: API de Tri des Déchets
+  version: 1.0.0
+  description: API pour la gestion de l'authentification des utilisateurs, du scan des déchets et du tri
+
+servers:
+  - url: https://api.example.com
+    description: Serveur de production
+  - url: http://localhost:3000
+    description: Serveur de développement local
+
+paths:
+  /auth:
+    post:
+      summary: Authentifier un utilisateur
+      description: Authentifie un utilisateur en vérifiant le nom d'utilisateur et le mot de passe, et retourne un token JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authentification réussie, retourne un token JWT.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Nom d'utilisateur ou mot de passe invalide.
+        '429':
+          description: Trop de requêtes. Vous avez dépassé la limite de taux. Veuillez réessayer plus tard.
+
+  /users:
+    post:
+      summary: Créer un nouvel utilisateur
+      description: Crée un nouveau compte utilisateur, vérifie si le nom d'utilisateur et l'email sont uniques, et retourne un token JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                email:
+                  type: string
+      responses:
+        '201':
+          description: Utilisateur créé avec succès, retourne un token JWT.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Entrée invalide ou email/nom d'utilisateur déjà pris.
+        '429':
+          description: Trop de requêtes. Vous avez dépassé la limite de taux. Veuillez réessayer plus tard.
+
+  /users/me:
+    get:
+      summary: Obtenir les informations de l'utilisateur actuel
+      description: Récupère les informations de l'utilisateur authentifié actuel en utilisant son token JWT.
+      responses:
+        '200':
+          description: Informations de l'utilisateur récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  email:
+                    type: string
+        '401':
+          description: Non autorisé, token JWT invalide ou manquant.
+
+    patch:
+      summary: Mettre à jour les informations de l'utilisateur actuel
+      description: Met à jour le profil de l'utilisateur actuel, tel que l'email, le nom d'utilisateur ou les préférences.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                username:
+                  type: string
+      responses:
+        '200':
+          description: Informations de l'utilisateur mises à jour avec succès.
+        '400':
+          description: Entrée invalide.
+        '401':
+          description: Non autorisé, token JWT invalide ou manquant.
+
+  /scan/barcode:
+    post:
+      summary: Scanner et traiter un article de déchet
+      description: Accepte un code-barres et retourne le résultat de la reconnaissance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: number
+                description: Le code-barres.
+      responses:
+        '200':
+          description: Scan traité avec succès, retourne les résultats de reconnaissance.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    type: string # À déterminer avec le frontend
+        '400':
+          description: Données de scan invalides.
+        '429':
+          description: Trop de requêtes. Vous avez dépassé la limite de taux. Veuillez réessayer plus tard.
+
+  /scan/image:
+    post:
+      summary: Scanner et traiter un article de déchet
+      description: Accepte une image pour le scan des déchets et retourne le résultat de la reconnaissance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: number
+                description: Le code-barres.
+      responses:
+        '200':
+          description: Scan traité avec succès, retourne les résultats de reconnaissance.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    type: string # À déterminer avec le frontend
+        '400':
+          description: Données de scan invalides.
+        '429':
+          description: Trop de requêtes. Vous avez dépassé la limite de taux. Veuillez réessayer plus tard.
+
+  /ai-data:
+    get:
+      summary: Obtenir les données mises à jour du modèle AI
+      description: Récupère les données mises à jour de l'IA pour améliorer la reconnaissance locale des objets (utile pour une utilisation hors ligne).
+      responses:
+        '200':
+          description: Données du modèle AI récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  lastUpdated:
+                    type: string
+                    format: date-time
+        '404':
+          description: Données du modèle AI non trouvées.
+
+  /waste-info:
+    post:
+      summary: Soumettre des informations manuelles sur un déchet
+      description: Permet aux utilisateurs de soumettre des informations manuelles sur un article de déchet.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                item:
+                  type: string # À déterminer avec le frontend
+      responses:
+        '200':
+          description: Informations soumises avec succès.
+        '400':
+          description: Informations sur les déchets invalides.
+
+  /location/recycling-info:
+    get:
+      summary: Obtenir des informations sur le recyclage en fonction de la géolocalisation
+      description: Récupère les règles locales de recyclage et les informations basées sur la géolocalisation.
+      parameters:
+        - in: query
+          name: lat
+          required: true
+          schema:
+            type: number
+            format: float
+          description: Latitude de la localisation de l'utilisateur.
+        - in: query
+          name: long
+          required: true
+          schema:
+            type: number
+            format: float
+          description: Longitude de la localisation de l'utilisateur.
+      responses:
+        '200':
+          description: Informations locales de recyclage récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    type: string # À déterminer avec le frontend
+        '400':
+          description: Données de géolocalisation invalides.
+        '404':
+          description: Aucune information de recyclage trouvée pour la localisation donnée.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []
