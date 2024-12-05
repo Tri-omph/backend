@@ -11,7 +11,6 @@ export class Customer extends User {
   })
   gameType!: GameType;
 
-  // À changer pour implémenter un système de point "digeste" pour la BDD (donc pas un JSON)
-  // @Column()
-  // points: Map<TypeDisposable, number> = new Map();
+  @Column({ default: 0 })
+  points!: number;
 }

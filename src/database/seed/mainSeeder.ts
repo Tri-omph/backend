@@ -22,6 +22,7 @@ const seedDatabase = async (dataSource: DataSource) => {
       ),
       gameType: GameType.MONSTER,
       restricted: false,
+      points: 0,
     };
 
     const admin = customerRepository.create(mainAdmin);
