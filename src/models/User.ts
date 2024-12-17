@@ -21,12 +21,15 @@ export class User {
   @PrimaryGeneratedColumn()
   id!: number; // Le ! dit à TypeScript qu'on définira la variable plus tard, sinon il veut un constructeur ou une valeur par défaut
 
-  @Column()
+  @Column({ length: 40 })
   username!: string;
 
-  @Column()
+  @Column({ length: 40 })
   login!: string;
 
   @Column()
   pwd_hash!: string;
+
+  @Column({ default: false })
+  restricted!: boolean;
 }

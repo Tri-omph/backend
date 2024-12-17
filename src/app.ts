@@ -8,7 +8,8 @@ dotenv.config();
 
 import errorHandler from './middlewares/errorHandler';
 import userRoutes from './routes/userRoutes';
-// import { AppDataSource } from './initDatabase';
+import { AppDataSource } from './database/data-source';
+import { seedDatabase } from './database/seed/mainSeeder';
 
 // Ce fichier est le point d'entrée principal de l'application Express.
 // Il configure l'application en important et en utilisant les routes (comme userRoutes),
@@ -28,17 +29,22 @@ app.use('/api/v1/users', userRoutes);
 app.use(errorHandler); // Gère les erreurs (voir src/middleware/ErrorHandler.ts). À laisser APRÈS les routes
 
 // Initialisation BDD
-// AppDataSource.initialize()
-//   .then(() => {
-//     console.log('Data Source has been initialized!');
-//   })
-//   .catch((err) => {
-//     console.error('Error during Data Source initialization:', err);
-//   });
+AppDataSource.initialize()
+  .then(async (dataSource) => {
+    console.log('Data Source has been initialized!');
 
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
+    // Remplir la base de données avec les valeurs par défaut (mainadmin par exemple)
+    await seedDatabase(dataSource);
+
+    // Si la BDD ne charge pas, ne pas lancer le backend
+    const url = process.env.URL || 'http://localhost';
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(`Server is running on ${url}:${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Error during Data Source initialization:', err);
+  });
 
 export default app;
