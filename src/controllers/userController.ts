@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../database/data-source';
-import { User } from '../models/User';
 
 import bcrypt from 'bcrypt';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import { Customer } from '../models/Customer';
 
 // Ce fichier contient les fonctions de contrôleur pour gérer les actions liées aux utilisateurs.
 // Les fonctions sont appelées depuis les routes définies dans `index.ts`. Chaque fonction
@@ -12,41 +12,51 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 /**
  * Fonction pour créer un nouvel utilisateur
  */
-
 const createUser = async (req: Request, res: Response) => {
   const { username, password, email } = req.body;
 
   if (!username || !email || !password) {
-    res.status(400).json({ message: 'Missing required fields: username, email, password' });
+    res.status(400).json({ message: 'Entrée invalide' });
     return;
   }
 
-  const userRepository = AppDataSource.getRepository(User);
+  const customerRepository = AppDataSource.getRepository(Customer);
 
   try {
-    // Check if the user already exists
-    const existingUser = await userRepository.findOneBy({ login: email });
+    const existingEmail = await customerRepository.findOneBy({ login: email });
+    const existingUser = await customerRepository.findOneBy({ username: username });
 
+    if (existingEmail) {
+      res.status(400).json({ message: "L'email existe déjà." });
+      return;
+    }
     if (existingUser) {
-      res.status(409).json({ message: 'User with this email already exists' });
+      res.status(400).json({ message: "Le nom d'utilisateur existe déjà." });
       return;
     }
 
-    // Hash the password before saving the user
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = userRepository.create({
+    const newCustomer = customerRepository.create({
       username: username,
       login: email,
       pwd_hash: hashedPassword,
     });
 
-    // Save the new user to the database
-    await userRepository.save(newUser);
-    res.status(201).json({ message: 'User created successfully' });
+    await customerRepository.save(newCustomer);
+
+    const token = jwt.sign(
+      { id: newCustomer.id, username: newCustomer.username },
+      process.env.JWT_SECRET || 'your_secret_key',
+    );
+
+    res.status(201).json({
+      message: 'Utilisateur créé avec succès.',
+      token: token,
+    });
   } catch (error) {
-    console.error('Error processing user creation:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Erreur lors de l inscription:', error);
+    res.status(500).json({ message: 'Erreur de serveur interne.' });
   }
 };
 
@@ -55,41 +65,38 @@ const createUser = async (req: Request, res: Response) => {
  * Fonction pour connecter un utilisateur
  */
 const loginUser = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { username, password } = req.body;
 
-  if (!email || !password) {
-    res.status(400).json({ message: 'Email and password are required' });
+  if (!username || !password) {
+    res.status(400).json({ message: 'Nom d utilisateur ou mot de passe requis.' });
     return;
   }
 
-  const userRepository = AppDataSource.getRepository(User);
+  const customerRepository = AppDataSource.getRepository(Customer);
 
   try {
-    // Find user by email
-    const user = await userRepository.findOneBy({ login: email });
+    const customer = await customerRepository.findOneBy({ username: username });
 
-    if (!user) {
-      res.status(401).json({ message: 'Invalid email or password' });
+    if (!customer) {
+      res.status(401).json({ error:true, message: ' Nom d utilisateur incorrect.' });
       return;
     }
 
-    // Compare passwords
-    const validPassword = await bcrypt.compare(password, user.pwd_hash);
+    const validPassword = await bcrypt.compare(password, customer.pwd_hash);
 
     if (!validPassword) {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ error:true,message: 'Mot de passe incorrect.' });
       return;
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET || 'your_secret_key', {
-      expiresIn: '1h',  // Token expiration time (optional)
+    const token = jwt.sign({ id: customer.id, username: customer.username }, process.env.JWT_SECRET || 'your_secret_key', {
     });
 
     res.status(200).json({ token });
+
   } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Erreur lors de la connexion:', error);
+    res.status(500).json({ message: 'Erreur de serveur' });
   }
 };
 
@@ -97,37 +104,28 @@ const loginUser = async (req: Request, res: Response) => {
 /**
  * Fonction pour récupérer les informations de l'utilisateur actuel
  */
-
-//Comprendre l'histoire du token
 const getCurrentUser = async (req: Request, res: Response) => {
-  const token = req.headers.authorization?.split(' ')[1];
-
-  if (!token) {
-    res.status(401).json({ message: 'No token provided' });
-    return;
-  }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
+    const customerId = req.user?.id;  // Retrieve customerId from the decoded token
 
-    if (typeof decoded !== 'object' || decoded === null || !('id' in decoded)) {
-      res.status(401).json({ message: 'Invalid token structure' });
+    if (!customerId) {
+      res.status(401).json({ message: 'Pas d id dans le token' });
       return;
     }
 
-    const decodedToken = decoded as JwtPayload;
-    const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOneBy({ id: decodedToken.id });
+    const customerRepository = AppDataSource.getRepository(Customer);
+    const customer = await customerRepository.findOneBy({ id: customerId });
 
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
+    if (!customer) {
+      res.status(404).json({ message: 'Utilisateur non trouvé' });
       return;
     }
 
-    res.status(200).json({ username: user.username, email: user.login });
+    res.status(200).json({ username: customer.username, email: customer.login });
   } catch (error) {
-    console.error('Error fetching current user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Erreur lors de la récupération de l utilisateur:', error);
+    res.status(500).json({ message: 'Erreur de serveur' });
   }
 };
 
@@ -136,54 +134,40 @@ const getCurrentUser = async (req: Request, res: Response) => {
  * Fonction pour mettre à jour les informations de l'utilisateur actuel
  */
 const updateCurrentUser = async (req: Request, res: Response) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  try{
+    const customerId = req.user?.id;  // Retrieve customerId from the decoded token
 
-  if (!token) {
-    res.status(401).json({ message: 'No token provided' });
-    return;
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
-
-    if (typeof decoded !== 'object' || !('id' in decoded)) {
-      res.status(401).json({ message: 'Invalid token structure' });
+    if (!customerId) {
+      res.status(401).json({ message: 'Unauthorized: No user ID in token' });
       return;
     }
 
-    const decodedToken = decoded as JwtPayload;
-    const userId = decodedToken.id;
+    const customerRepository = AppDataSource.getRepository(Customer);
+    const customer = await customerRepository.findOneBy({ id: customerId });
 
-    const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOneBy({ id: userId });
-
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
+    if (!customer) {
+      res.status(404).json({ message: 'Utilisateur non trouvé' });
       return;
     }
 
     const updatedData = req.body;
 
     // Update user fields
-    if (updatedData.username) user.username = updatedData.username;
-    if (updatedData.email) user.login = updatedData.email;
+    if (updatedData.username) customer.username = updatedData.username;
+    if (updatedData.email) customer.login = updatedData.email;
 
     if (updatedData.password) {
-      user.pwd_hash = await bcrypt.hash(updatedData.password, 10);
+      customer.pwd_hash = await bcrypt.hash(updatedData.password, 10);
     }
 
-    const savedUser = await userRepository.save(user);
+    const savedCustomer = await customerRepository.save(customer);
 
     res.status(200).json({
-      message: 'User updated successfully',
-      user: {
-        username: savedUser.username,
-        email: savedUser.login,
-      },
+      message: 'Les informations de l utilisateur ont été mises à jour avec succès.',
     });
   } catch (err) {
-    console.error('Error updating user:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Erreur lors de la MAJ de l utilisateur:', err);
+    res.status(500).json({ message: 'Erreur de serveur' });
   }
 };
 
