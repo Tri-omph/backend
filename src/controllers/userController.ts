@@ -107,7 +107,7 @@ const loginUser = async (req: Request, res: Response) => {
 const getCurrentUser = async (req: Request, res: Response) => {
 
   try {
-    const customerId = req.user?.id;  // Retrieve customerId from the decoded token
+    const customerId = req.user?.id;
 
     if (!customerId) {
       res.status(401).json({ message: 'Pas d id dans le token' });
@@ -135,7 +135,7 @@ const getCurrentUser = async (req: Request, res: Response) => {
  */
 const updateCurrentUser = async (req: Request, res: Response) => {
   try{
-    const customerId = req.user?.id;  // Retrieve customerId from the decoded token
+    const customerId = req.user?.id;
 
     if (!customerId) {
       res.status(401).json({ message: 'Unauthorized: No user ID in token' });
