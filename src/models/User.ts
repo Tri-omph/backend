@@ -32,4 +32,7 @@ export class User {
 
   @Column({ default: false })
   restricted!: boolean;
+
+  @Column({ default: false })
+  admin!: boolean;
 }
