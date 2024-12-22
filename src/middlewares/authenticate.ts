@@ -19,5 +19,4 @@ export const authMiddleware = (
   next();
 };
 
-// idée : un middleware pour admin?
 // idée : des middlewares pour la sécurité (éviter les injection SQL, XSS etc.)
