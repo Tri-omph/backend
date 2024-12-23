@@ -38,8 +38,8 @@ AppDataSource.initialize()
     await seedDatabase(dataSource);
 
     // Si la BDD ne charge pas, ne pas lancer le backend
-    const url = process.env.URL || 'http://localhost';
-    const port = process.env.PORT || 3000;
+    const url = process.env.URL ?? 'http://localhost';
+    const port = process.env.PORT ?? 3000;
     app.listen(port, () => {
       console.log(`Server is running on ${url}:${port}`);
     });
