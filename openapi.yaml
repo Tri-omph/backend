@@ -349,6 +349,8 @@ paths:
           description: Non autorisé.
         '404':
           description: Utilisateur non trouvé.
+        '409':
+          description: Utilisateur déjà admin.
 
   /admin/demote/{id}:
     patch:
@@ -360,16 +362,18 @@ paths:
           required: true
           schema:
             type: string
-          description: ID de l'utilisateur à démotiver.
+          description: ID de l'utilisateur à rétrograder.
       responses:
         '200':
-          description: L'utilisateur a été démotivé avec succès.
+          description: L'utilisateur a été rétrogradé avec succès.
         '400':
           description: Entrée invalide.
         '401':
           description: Non autorisé.
         '404':
           description: Utilisateur non trouvé.
+        '409':
+          description: Utilisateur non admin.
 
   /admin/restrict/{id}:
     patch:
@@ -389,6 +393,8 @@ paths:
           description: Entrée invalide ou tentative de restreindre un admin sans démotion préalable.
         '404':
           description: Utilisateur non trouvé.
+        '409':
+          description: Utilisateur déjà restreint ou admin.
 
   /admin/free/{id}:
     patch:
@@ -408,6 +414,8 @@ paths:
           description: Entrée invalide.
         '404':
           description: Utilisateur non trouvé.
+        '409':
+          description: Utilisateur non restreint.
 
 components:
   securitySchemes:

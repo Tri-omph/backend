@@ -14,9 +14,10 @@ export const authMiddleware = (
   next: NextFunction
 ) => {
   const token = req.headers.authorization;
-  if (!token) return res.status(401).json({ message: 'Unauthorized' });
+  if (!token) res.status(401).json({ message: 'Unauthorized' });
   // TODO: Valider le JWT avec la lib jsonwebtoken
   next();
 };
 
+// idée : un middleware pour admin?
 // idée : des middlewares pour la sécurité (éviter les injection SQL, XSS etc.)

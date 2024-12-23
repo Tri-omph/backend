@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { RequestHandler } from 'express';
 
 /** Middleware vérifiant l'utilisateur connecté est l'administrateur principal.
  *
@@ -9,16 +9,16 @@ import { Request, Response, NextFunction } from 'express';
  *      router.use(mainAdminMiddleware);
  *      router.post(...)
  */
-export const mainAdminMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (!res.locals.user)
-    return res.status(401).json({ message: 'Authentication required' });
+export const mainAdminMiddleware: RequestHandler = (req, res, next) => {
+  if (!res.locals.user) {
+    res.status(401).json({ message: 'Authentication required' });
+    return;
+  }
 
-  if (!res.locals.user.admin || res.locals.user.id !== 0)
-    return res.status(401).json({ message: 'Main admin privileges required' });
+  if (!res.locals.user.admin || res.locals.user.id !== 0) {
+    res.status(401).json({ message: 'Main admin privileges required' });
+    return;
+  }
 
   next();
 };

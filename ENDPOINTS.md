@@ -198,12 +198,12 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
 
 ```json
 {
-  "id": "123",
+  "id": 123,
   "username": "exampleUser",
   "pointsMin": 50,
   "pointsMax": 200,
-  "gametype": "competitive",
-  "login": "2024-12-21T12:00:00Z",
+  "gametype": "monster",
+  "login": "example@example.com",
   "restricted": false,
   "admin": true
 }
@@ -397,6 +397,7 @@ Promouvoir l'utilisateur avec l'ID indiqué pour lui attribuer les droits d'admi
   ```
 - **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
 - **404 Not Found** : Utilisateur introuvable.
+- **409 Conflict** : Utilisateur déjà admin.
 
 ---
 
@@ -420,6 +421,7 @@ Retirer les droits d'admin de l'admin avec l'ID indiqué. Seul l'admin principal
   ```
 - **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
 - **404 Not Found** : Utilisateur introuvable.
+- **409 Conflict** : Utilisateur non admin.
 
 ---
 
@@ -443,6 +445,7 @@ Restreindre un utilisateur avec l'ID indiqué. Si l'utilisateur est un admin, il
   ```
 - **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
 - **404 Not Found** : Utilisateur introuvable.
+- **409 Conflict** : Utilisateur déjà restreint ou administrateur.
 
 ---
 
@@ -466,6 +469,7 @@ Lever les restrictions imposées à un utilisateur avec l'ID indiqué.
   ```
 - **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
 - **404 Not Found** : Utilisateur introuvable.
+- **409 Conflict** : Utilisateur non restreint.
 
 ---
 
@@ -476,5 +480,6 @@ Lever les restrictions imposées à un utilisateur avec l'ID indiqué.
 - **400 Bad Request** : La requête est invalide ou malformée.
 - **401 Unauthorized** : L'authentification a échoué ou l'utilisateur n'est pas autorisé à effectuer l'opération demandée.
 - **404 Not Found** : La ressource demandée n'a pas été trouvée.
+- **409 Conflict** : La requête ne peut pas être traitée en raison d'un conflit avec l'état actuel de la ressource.
 - **429 Too Many Requests** : L'utilisateur a dépassé la limite de requêtes.
 - **500 Internal Server Error** : Un message d'erreur générique indiquant un problème avec le serveur.
