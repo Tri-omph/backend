@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import userController from '../controllers/userController';
-import { authMiddleware } from '../middlewares/authenticate';
+import scanController from '../controllers/scanController';
 
 // Ce fichier définit les routes de l'application. Il est responsable de gérer les chemins d'URL
 // qui pointent vers des actions spécifiques dans le contrôleur. Ici, nous avons les routes liées aux utilisateurs,
@@ -9,12 +8,9 @@ import { authMiddleware } from '../middlewares/authenticate';
 
 const router = Router();
 
-router.post('/', userController.createUser); // POST /api/v1/users //POST /users
-router.post('/auth', userController.loginUser); //POST /api/v1/auth
+router.post('/scan/barcode', scanController.processBarcodeScan); //POST /scan/barcode
+router.post('/scan/image', scanController.processImageScan); //POST /scan/image
 
-router.use(authMiddleware);
-
-router.get('/me', userController.getCurrentUser); // GET /api/v1/users/me
-router.patch('/me', userController.updateCurrentUser); // PATCH /api/v1/users/me
+router.post('/waste-info', scanController.submitWasteInfo); // POST /waste-info
 
 export default router;
