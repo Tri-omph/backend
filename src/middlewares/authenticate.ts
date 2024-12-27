@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 
 /** Middleware vérifiant si un utilisateur est connecté, et si le token n'est pas expiré
@@ -9,11 +9,7 @@ import jwt from 'jsonwebtoken';
  *      router.use(authMiddleware);
  *      router.post(...)
  */
-export const authMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const authMiddleware: RequestHandler = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {

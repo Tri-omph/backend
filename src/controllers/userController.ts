@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { RequestHandler } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -12,7 +12,7 @@ import { Customer } from '../models/Customer';
 /**
  * Fonction pour créer un nouvel utilisateur
  */
-const createUser = async (req: Request, res: Response) => {
+const createUser: RequestHandler = async (req, res) => {
   const { username, password, email } = req.body;
 
   if (!username || !email || !password) {
@@ -65,7 +65,7 @@ const createUser = async (req: Request, res: Response) => {
 /**
  * Fonction pour connecter un utilisateur
  */
-const loginUser = async (req: Request, res: Response) => {
+const loginUser: RequestHandler = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -110,7 +110,7 @@ const loginUser = async (req: Request, res: Response) => {
 /**
  * Fonction pour récupérer les informations de l'utilisateur actuel
  */
-const getCurrentUser = async (req: Request, res: Response) => {
+const getCurrentUser: RequestHandler = async (_req, res) => {
   try {
     const customerId = res.locals.user?.id;
 
@@ -139,7 +139,7 @@ const getCurrentUser = async (req: Request, res: Response) => {
 /**
  * Fonction pour mettre à jour les informations de l'utilisateur actuel
  */
-const updateCurrentUser = async (req: Request, res: Response) => {
+const updateCurrentUser: RequestHandler = async (req, res) => {
   try {
     const customerId = res.locals.user?.id;
 

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { ErrorRequestHandler } from 'express';
 
 // Ce middleware gère toutes les erreurs qui se produisent dans l'application.
 // Lorsqu'une erreur est lancée dans une route ou un middleware, ce gestionnaire est appelé.
@@ -10,16 +10,11 @@ interface ErrorWithStatus extends Error {
   status?: number;
 }
 
-const errorHandler = (
-  err: unknown,
-  _req: Request, // préfixé avec un _ signifie que la variable est volontairement non utilisée.
-  res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _next: NextFunction
-) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof Error) {
     console.error(err);
-    res.status((err as ErrorWithStatus).status || 500).json({
+    res.status((err as ErrorWithStatus).status ?? 500).json({
       status: 'error',
       message: err.message || 'Something went wrong!',
     });

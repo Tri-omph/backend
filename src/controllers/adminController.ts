@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+
 import { Customer } from '../models/Customer';
 import { AppDataSource } from '../database/data-source';
 
