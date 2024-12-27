@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 
 /** Middleware vérifiant si un utilisateur est connecté, et si le token n'est pas expiré
  *
@@ -13,11 +14,33 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.headers.authorization;
-  if (!token) res.status(401).json({ message: 'Unauthorized' });
-  // TODO: Valider le JWT avec la lib jsonwebtoken
-  next();
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    res.status(401).json({ message: 'Unauthorized: No token provided' });
+    return;
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET ?? 'your_secret_key'
+    );
+
+    if (typeof decoded !== 'object' || !decoded) {
+      res.status(401).json({ message: 'Unauthorized: Invalid token' });
+      return;
+    }
+
+    res.locals.user = decoded;
+
+    next();
+  } catch (err) {
+    console.error('Token validation error:', err);
+    res.status(401).json({ message: 'Unauthorized: Token invalid or expired' });
+  }
 };
 
-// idée : un middleware pour admin?
-// idée : des middlewares pour la sécurité (éviter les injection SQL, XSS etc.)
+export default {
+  authMiddleware,
+};

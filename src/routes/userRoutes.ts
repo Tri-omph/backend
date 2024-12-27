@@ -1,5 +1,7 @@
 import { Router } from 'express';
+
 import userController from '../controllers/userController';
+import { authMiddleware } from '../middlewares/authenticate';
 import { adminMiddleware } from '../middlewares/authenticateAdmin';
 
 // Ce fichier définit les routes de l'application. Il est responsable de gérer les chemins d'URL
@@ -9,7 +11,11 @@ import { adminMiddleware } from '../middlewares/authenticateAdmin';
 
 const router = Router();
 
-router.post('/', userController.createUser); // POST /api/v1/users
+router.post('/', userController.createUser); // POST /api/v1/users //POST /users
+router.post('/auth', userController.loginUser); //POST /api/v1/auth
+
+router.use(authMiddleware);
+
 router.get('/me', userController.getCurrentUser); // GET /api/v1/users/me
 router.patch('/me', userController.updateCurrentUser); // PATCH /api/v1/users/me
 
