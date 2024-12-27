@@ -4,7 +4,9 @@ const processBarcodeScan = async (req: Request, res: Response) => {
   const barcodeData = req.body.barcode;
 
   if (!barcodeData) {
-    res.status(400).json({error: true,message: 'Données de scan invalides.',});
+    res
+      .status(400)
+      .json({ error: true, message: 'Données de scan invalides.' });
     return;
   }
 
@@ -14,13 +16,14 @@ const processBarcodeScan = async (req: Request, res: Response) => {
     res.status(200).json(result);
   } catch (error) {
     console.error('Erreur de traitement du scan barcode:', error);
-    res.status(500).json({ error: true, message: 'Erreur interne du serveur.' });
+    res
+      .status(500)
+      .json({ error: true, message: 'Erreur interne du serveur.' });
   }
 };
 
-
 const recognizeBarcode = async (barcodeData: string) => {
-//Exemple
+  //Exemple
   return {
     barcode: barcodeData,
     productName: 'Example Product',
@@ -30,21 +33,26 @@ const recognizeBarcode = async (barcodeData: string) => {
   //TODO look for the code in the database
 };
 
-
 const processImageScan = async (req: Request, res: Response) => {
   try {
     //TO DO
   } catch (error) {
     console.error('Erreur de traitement du scan image:', error);
-    res.status(500).json({ error: true, message: 'Erreur interne du serveur.' });
+    res
+      .status(500)
+      .json({ error: true, message: 'Erreur interne du serveur.' });
   }
 };
 
 const submitWasteInfo = async (req: Request, res: Response) => {
   const { wasteType, description, recyclingInfo } = req.body;
-                                                
+
   if (!wasteType || !description || !recyclingInfo) {
-    res.status(400).json({error: true,message: 'Informations sur les déchets invalides. Veuillez fournir wasteType, description et recyclingInfo.',});
+    res.status(400).json({
+      error: true,
+      message:
+        'Informations sur les déchets invalides. Veuillez fournir wasteType, description et recyclingInfo.',
+    });
     return;
   }
 
@@ -61,7 +69,9 @@ const submitWasteInfo = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error submitting waste info:', error);
-    res.status(500).json({ error: true, message: 'Erreur interne du serveur.' });
+    res
+      .status(500)
+      .json({ error: true, message: 'Erreur interne du serveur.' });
   }
 };
 

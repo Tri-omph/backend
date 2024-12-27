@@ -9,8 +9,8 @@ import scanController from '../controllers/scanController';
 const router = Router();
 
 router.post('/scan/barcode', scanController.processBarcodeScan); //POST /scan/barcode
-router.post('/scan/image', scanController.processImageScan);//POST /scan/image
+router.post('/scan/image', scanController.processImageScan); //POST /scan/image
 
-router.post('/waste-info', scanController.submitWasteInfo);// POST /waste-info
+router.post('/waste-info', scanController.submitWasteInfo); // POST /waste-info
 
 export default router;

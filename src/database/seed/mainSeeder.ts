@@ -17,7 +17,7 @@ const seedDatabase = async (dataSource: DataSource) => {
       username: 'mainadmin',
       login,
       pwd_hash: await bcrypt.hash(
-        process.env.MAIN_ADMIN_PWD || 'mot_de_passe_pas_sécurisé_du_tout',
+        process.env.MAIN_ADMIN_PWD ?? 'mot_de_passe_pas_sécurisé_du_tout',
         10 // Sel pour rendre le hachage encore plus sécurisé
       ),
       gameType: GameType.MONSTER,

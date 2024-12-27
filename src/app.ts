@@ -1,8 +1,7 @@
 import 'reflect-metadata';
-import express from 'express';
+import express, { json, urlencoded } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import { json, urlencoded } from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -37,8 +36,8 @@ AppDataSource.initialize()
     await seedDatabase(dataSource);
 
     // Si la BDD ne charge pas, ne pas lancer le backend
-    const url = process.env.URL || 'http://localhost';
-    const port = process.env.PORT || 3000;
+    const url = process.env.URL ?? 'http://localhost';
+    const port = process.env.PORT ?? 3000;
     app.listen(port, () => {
       console.log(`Server is running on ${url}:${port}`);
     });
