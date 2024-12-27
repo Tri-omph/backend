@@ -159,6 +159,77 @@ Met à jour le profil de l'utilisateur actuel, par exemple son email ou son nom 
 
 ---
 
+### GET /users/info/:id
+
+#### Description :
+
+Obtenir les informations détaillées d'un utilisateur spécifique à partir de son ID.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : Informations de l'utilisateur récupérées avec succès.
+  ```json
+  {
+    "id": "123",
+    "username": "exampleUser",
+    "email": "user@example.com",
+    "points": 100,
+    "gametype": "casual",
+    "restricted": false,
+    "admin": false
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **404 Not Found** : Utilisateur introuvable.
+
+---
+
+### POST /users/find/
+
+#### Description :
+
+Permet de chercher des utilisateurs en fonction de différents filtres.
+
+#### Corps de la requête :
+
+```json
+{
+  "id": 123,
+  "username": "exampleUser",
+  "pointsMin": 50,
+  "pointsMax": 200,
+  "gametype": "monster",
+  "login": "example@example.com",
+  "restricted": false,
+  "admin": true
+}
+```
+
+#### Réponses :
+
+- **200 OK** : Résultats de la recherche renvoyés avec succès.
+  ```json
+  [
+    {
+      "id": "123",
+      "username": "exampleUser",
+      "points": 150,
+      "gametype": "competitive",
+      "restricted": false,
+      "admin": true
+    }
+  ]
+  ```
+- **400 Bad Request** : Données de filtre invalides.
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **404 Not Found** : Aucun utilisateur ne correspond aux critères de recherche.
+
+---
+
 ### POST /scan/barcode
 
 #### Description :
@@ -306,6 +377,102 @@ GET /location/recycling-info?lat=48.8566&long=2.3522
 
 ---
 
+### PATCH /admin/promote/:id
+
+#### Description :
+
+Promouvoir l'utilisateur avec l'ID indiqué pour lui attribuer les droits d'admin.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : L'utilisateur a été promu avec succès.
+  ```json
+  {
+    "message": "L'utilisateur a été promu avec succès."
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **404 Not Found** : Utilisateur introuvable.
+- **409 Conflict** : Utilisateur déjà admin.
+
+---
+
+### PATCH /admin/demote/:id
+
+#### Description :
+
+Retirer les droits d'admin de l'admin avec l'ID indiqué. Seul l'admin principal peut effectuer cette opération.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : L'admin a été rétrogradé avec succès.
+  ```json
+  {
+    "message": "Les droits d'admin ont été retirés."
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **404 Not Found** : Utilisateur introuvable.
+- **409 Conflict** : Utilisateur non admin.
+
+---
+
+### PATCH /admin/restrict/:id
+
+#### Description :
+
+Restreindre un utilisateur avec l'ID indiqué. Si l'utilisateur est un admin, il doit d'abord être rétrogradé avant d'être restreint.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : L'utilisateur a été restreint avec succès.
+  ```json
+  {
+    "message": "L'utilisateur a été restreint avec succès."
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **404 Not Found** : Utilisateur introuvable.
+- **409 Conflict** : Utilisateur déjà restreint ou administrateur.
+
+---
+
+### PATCH /admin/free/:id
+
+#### Description :
+
+Lever les restrictions imposées à un utilisateur avec l'ID indiqué.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : Les restrictions sur l'utilisateur ont été levées avec succès.
+  ```json
+  {
+    "message": "L'utilisateur n'est plus restreint."
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **404 Not Found** : Utilisateur introuvable.
+- **409 Conflict** : Utilisateur non restreint.
+
+---
+
 ## Codes de Réponse
 
 - **200 OK** : La requête a été réussie et la réponse contient les données demandées.
@@ -313,5 +480,6 @@ GET /location/recycling-info?lat=48.8566&long=2.3522
 - **400 Bad Request** : La requête est invalide ou malformée.
 - **401 Unauthorized** : L'authentification a échoué ou l'utilisateur n'est pas autorisé à effectuer l'opération demandée.
 - **404 Not Found** : La ressource demandée n'a pas été trouvée.
+- **409 Conflict** : La requête ne peut pas être traitée en raison d'un conflit avec l'état actuel de la ressource.
 - **429 Too Many Requests** : L'utilisateur a dépassé la limite de requêtes.
 - **500 Internal Server Error** : Un message d'erreur générique indiquant un problème avec le serveur.

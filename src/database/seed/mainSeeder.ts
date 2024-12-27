@@ -22,6 +22,7 @@ const seedDatabase = async (dataSource: DataSource) => {
       ),
       gameType: GameType.MONSTER,
       restricted: false,
+      admin: true,
       points: 0,
     };
 

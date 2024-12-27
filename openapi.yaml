@@ -114,6 +114,92 @@ paths:
         '401':
           description: Non autorisé, token JWT invalide ou manquant.
 
+  /users/info/{id}:
+    get:
+      summary: Obtenir les informations d'un utilisateur
+      description: Récupère les informations d'un utilisateur à l'aide de son ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur dont on souhaite récupérer les informations.
+      responses:
+        '200':
+          description: Informations de l'utilisateur récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  email:
+                    type: string
+                  points:
+                    type: integer
+                  gametype:
+                    type: string
+                  restricted:
+                    type: boolean
+                  admin:
+                    type: boolean
+        '404':
+          description: Utilisateur non trouvé.
+
+  /users/find/:
+    post:
+      summary: Chercher un utilisateur
+      description: Permet de rechercher un utilisateur en fonction des critères de filtre spécifiés.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                username:
+                  type: string
+                pointsMin:
+                  type: integer
+                pointsMax:
+                  type: integer
+                gametype:
+                  type: string
+                login:
+                  type: string
+                restricted:
+                  type: boolean
+                admin:
+                  type: boolean
+      responses:
+        '200':
+          description: Résultats de la recherche retournés avec succès.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    username:
+                      type: string
+                    email:
+                      type: string
+                    points:
+                      type: integer
+                    gametype:
+                      type: string
+                    restricted:
+                      type: boolean
+                    admin:
+                      type: boolean
+        '400':
+          description: Paramètres de recherche invalides.
+
   /scan/barcode:
     post:
       summary: Scanner et traiter un article de déchet
@@ -242,6 +328,94 @@ paths:
           description: Données de géolocalisation invalides.
         '404':
           description: Aucune information de recyclage trouvée pour la localisation donnée.
+
+  /admin/promote/{id}:
+    patch:
+      summary: Promouvoir un utilisateur
+      description: Permet de promouvoir l'utilisateur avec l'ID spécifié.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur à promouvoir.
+      responses:
+        '200':
+          description: L'utilisateur a été promu avec succès.
+        '400':
+          description: Entrée invalide.
+        '401':
+          description: Non autorisé.
+        '404':
+          description: Utilisateur non trouvé.
+        '409':
+          description: Utilisateur déjà admin.
+
+  /admin/demote/{id}:
+    patch:
+      summary: Retirer les droits d'admin d'un utilisateur
+      description: Retire les droits d'admin de l'utilisateur avec l'ID spécifié (uniquement possible pour le main admin).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur à rétrograder.
+      responses:
+        '200':
+          description: L'utilisateur a été rétrogradé avec succès.
+        '400':
+          description: Entrée invalide.
+        '401':
+          description: Non autorisé.
+        '404':
+          description: Utilisateur non trouvé.
+        '409':
+          description: Utilisateur non admin.
+
+  /admin/restrict/{id}:
+    patch:
+      summary: Restreindre un utilisateur
+      description: Restreint l'utilisateur avec l'ID spécifié. Si l'utilisateur est un admin, il faut d'abord lui retirer ses droits d'admin.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur à restreindre.
+      responses:
+        '200':
+          description: L'utilisateur a été restreint avec succès.
+        '400':
+          description: Entrée invalide ou tentative de restreindre un admin sans démotion préalable.
+        '404':
+          description: Utilisateur non trouvé.
+        '409':
+          description: Utilisateur déjà restreint ou admin.
+
+  /admin/free/{id}:
+    patch:
+      summary: Libérer un utilisateur restreint
+      description: Annule la restriction d'un utilisateur avec l'ID spécifié.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur à libérer.
+      responses:
+        '200':
+          description: L'utilisateur a été libéré avec succès.
+        '400':
+          description: Entrée invalide.
+        '404':
+          description: Utilisateur non trouvé.
+        '409':
+          description: Utilisateur non restreint.
 
 components:
   securitySchemes:
