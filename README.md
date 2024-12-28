@@ -12,12 +12,27 @@ Pour utiliser ce projet, suivez les étapes ci-dessous :
    ```
 
 2. **Créer le fichier `.env`**  
-   Copiez le fichier `.env.example` en `.env` et configurez les variables nécessaires, par exemple :
+   Copiez le fichier `default.env` en `.env` et configurez les variables nécessaires, par exemple :
 
    ```plaintext
-   PORT=3000
-   DATABASE_URL=your_database_url
-   JWT_SECRET=your_jwt_secret_key
+    # Adresse de base de l'application
+    URL=http://localhost
+
+    # Port sur lequel le serveur Node.js écoutera
+    PORT=3000
+
+    # Clé secrète utilisée pour signer et vérifier les tokens JWT
+    JWT_SECRET="un_mot_de_passe_sécurisé"
+
+    # Configuration de la base de données
+    DB_HOST=localhost
+    DB_PORT=5432
+    DB_USERNAME=test
+    DB_PWD=test
+    DB_NAME=test_db
+
+    # Mot de passe du compte administrateur principal, initialisé par défaut
+    MAIN_ADMIN_PWD="le_mot_de_passe_du_client"
    ```
 
    Ces variables sont nécessaires pour le fonctionnement de l'application.
@@ -39,14 +54,14 @@ Pour utiliser ce projet, suivez les étapes ci-dessous :
    Par défaut, le serveur sera accessible sur [http://localhost:3000](http://localhost:3000).
 
 5. **Exécuter les tests**  
-   Si vous souhaitez vérifier que tout fonctionne correctement, lancez les tests :
+   Si vous souhaitez vérifier que tout fonctionne correctement, lancez les tests Jest :
 
    ```bash
    npm test
    ```
 
 6. **Lint et formatage**  
-   Pour vérifier et corriger le formatage ou les erreurs de linting, utilisez :
+   Pour vérifier et corriger le formatage ou les erreurs de linting avant de commit, utilisez :
    ```bash
    npm run lint:fix
    npm run format
@@ -63,18 +78,20 @@ Le projet suit une architecture modulaire et claire pour faciliter la maintenanc
 
 - **`src/`** : Contient tout le code source du projet.
 
-  - **`app.ts`** : Point d'entrée principal de l'application Express où les middlewares et routes sont configurés.
   - **`controllers/`** : Contient la logique métier pour chaque ressource, comme `userController.ts` qui gère la création, la récupération et la mise à jour des utilisateurs.
-  - **`routes/`** : Contient toutes les définitions de routes pour l'API, comme `UserRoutes.ts` qui gère les routes `/api/v1/users`.
-  - **`middlewares/`** : Contient les middlewares, comme `ErrorHandler.ts` qui gère les erreurs globales de l'application.
+  - **`database/`** : Mise en place de la connexion à la base de données.
+  - **`middlewares/`** : Contient les intergiciels, comme `ErrorHandler.ts` qui gère les erreurs globales de l'application.
   - **`models/`** : Les modèles définissent la structure des données et les interactions avec la base de données. Chaque modèle correspond à une entité spécifique de l'application (par exemple, `User.ts` représente un utilisateur). Ces modèles sont utilisés dans les contrôleurs pour récupérer, créer, mettre à jour ou supprimer des données dans la base de données.
+  - **`routes/`** : Contient toutes les définitions de routes pour l'API, comme `UserRoutes.ts` qui gère les routes `/api/v1/users`.
+  - **`types/`** : Contient la définition des types utiles à tout le backend, tel que les énumérations.
+  - **`app.ts`** : Point d'entrée principal de l'application Express où les middlewares et routes sont configurés.
 
 - **`tests/`** : Contient les tests unitaires et d'intégration pour garantir que l'application fonctionne correctement.
   - Les tests sont organisés en fonction des fonctionnalités, comme `userController.test.ts` pour tester les actions des utilisateurs.
 - **`package.json`** : Dépendances du projet et scripts pour la gestion de l'application, comme les commandes `npm start`, `npm run build`, et `npm test`.
 - **`tsconfig.json`** : Configuration de TypeScript pour définir le comportement de la compilation et la résolution des modules.
-- **`dist/`** : Dossier contenant le code compilé en JavaScript après la compilation TypeScript.
-- **`node_modules/`** : Contient toutes les dépendances installées par `npm`.
+- **`dist/`** : Dossier contenant le code compilé en JavaScript après la compilation TypeScript via `npm run build` ou `tsc`.
+- **`node_modules/`** : Contient toutes les dépendances installées par `npm` après `npm install`.
 - **`.prettierrc`** : Fichier de configuration pour Prettier afin d'assurer un formatage de code cohérent.
 - **`.eslintrc.json`** : Configuration d'ESLint pour maintenir une qualité de code optimale.
 - **`.gitignore`** : Spécifie les fichiers et répertoires à ignorer par Git, comme les fichiers de build ou les dépendances.
@@ -93,18 +110,15 @@ Ce projet est une collaboration entre les membres de notre groupe dans le cadre 
    Consultez notre outil de gestion des tâches ou les discussions de groupe pour voir les tâches qui vous sont attribuées.
 
 2. **Respecter les Standards de Code** :
-
    - Suivez les configurations ESLint et Prettier fournies dans le dépôt.
    - Assurez-vous que votre code est typé et cohérent avec la structure existante.
    - Rédigez des messages de commit clairs et précis pour décrire vos modifications.
 
 3. **Utiliser un Workflow par Branches** :
-
-   - Créez une nouvelle branche pour vos travaux. Utilisez des noms descriptifs comme `feature/<nom-tâche>` ou `fix/<nom-bug>`.
+   - Créez une nouvelle branche pour vos travaux. Utilisez des noms descriptifs comme `feat/<nom-tâche>` ou `fix/<nom-bug>`.
    - Évitez de committer directement sur la branche principale (`main`).
 
 4. **Tester votre Code** :
-
    - Écrivez des tests pour chaque nouvelle fonctionnalité ou correction de bug que vous implémentez.
    - Lancez tous les tests localement avant de soumettre vos modifications :
      ```bash
@@ -112,7 +126,6 @@ Ce projet est une collaboration entre les membres de notre groupe dans le cadre 
      ```
 
 5. **Processus de Revue de Code** :
-
    - Poussez votre branche et créez une _pull request_ (PR) vers la branche `main`.
    - Attendez l’approbation d’au moins un autre membre de l’équipe avant de fusionner votre PR.
 
