@@ -23,40 +23,6 @@ Ils peuvent directement importer le fichier `openapi.yaml` pour faciliter l'util
 
 ## Endpoints
 
-### POST /auth
-
-#### Description :
-
-Authentifie un utilisateur en vérifiant son nom d'utilisateur et son mot de passe, et renvoie un token JWT.
-
-#### Corps de la requête :
-
-```json
-{
-  "username": "exampleUser",
-  "password": "examplePassword"
-}
-```
-
-#### Réponses :
-
-- **200 OK** : Authentification réussie, renvoie un token JWT.
-  ```json
-  {
-    "token": "your-jwt-token"
-  }
-  ```
-- **401 Unauthorized** : Nom d'utilisateur ou mot de passe incorrect.
-  ```json
-  {
-    "error": true,
-    "message": "Nom d'utilisateur ou mot de passe incorrect."
-  }
-  ```
-- **429 Too Many Requests** : Vous avez dépassé la limite de requêtes. Veuillez réessayer plus tard.
-
----
-
 ### POST /users
 
 #### Description :
@@ -86,6 +52,40 @@ Crée un nouveau compte utilisateur, vérifie l'unicité du nom d'utilisateur et
   {
     "error": true,
     "message": "L'email ou le nom d'utilisateur existe déjà."
+  }
+  ```
+- **429 Too Many Requests** : Vous avez dépassé la limite de requêtes. Veuillez réessayer plus tard.
+
+---
+
+### POST /users/auth
+
+#### Description :
+
+Authentifie un utilisateur en vérifiant son nom d'utilisateur et son mot de passe, et renvoie un token JWT.
+
+#### Corps de la requête :
+
+```json
+{
+  "username": "exampleUser",
+  "password": "examplePassword"
+}
+```
+
+#### Réponses :
+
+- **200 OK** : Authentification réussie, renvoie un token JWT.
+  ```json
+  {
+    "token": "your-jwt-token"
+  }
+  ```
+- **401 Unauthorized** : Nom d'utilisateur ou mot de passe incorrect.
+  ```json
+  {
+    "error": true,
+    "message": "Nom d'utilisateur ou mot de passe incorrect."
   }
   ```
 - **429 Too Many Requests** : Vous avez dépassé la limite de requêtes. Veuillez réessayer plus tard.
@@ -174,11 +174,10 @@ Obtenir les informations détaillées d'un utilisateur spécifique à partir de 
 - **200 OK** : Informations de l'utilisateur récupérées avec succès.
   ```json
   {
-    "id": "123",
+    "id": 123,
     "username": "exampleUser",
     "email": "user@example.com",
     "points": 100,
-    "gametype": "casual",
     "restricted": false,
     "admin": false
   }
@@ -202,7 +201,6 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
   "username": "exampleUser",
   "pointsMin": 50,
   "pointsMax": 200,
-  "gametype": "monster",
   "login": "example@example.com",
   "restricted": false,
   "admin": true
@@ -215,12 +213,14 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
   ```json
   [
     {
-      "id": "123",
+      "id": 123,
       "username": "exampleUser",
       "points": 150,
-      "gametype": "competitive",
       "restricted": false,
       "admin": true
+    },
+    {
+      ...
     }
   ]
   ```
