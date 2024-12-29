@@ -47,13 +47,9 @@ Crée un nouveau compte utilisateur, vérifie l'unicité du nom d'utilisateur et
     "token": "your-jwt-token"
   }
   ```
-- **400 Bad Request** : Entrée invalide ou l'email/nom d'utilisateur est déjà pris.
-  ```json
-  {
-    "error": true,
-    "message": "L'email ou le nom d'utilisateur existe déjà."
-  }
-  ```
+- **400 Bad Request** : Paramètres manquants.
+- **409 Conflict** : Le mail ou le pseudonyme sont déjà pris (sensible à la casse).
+- **422 Unprocessable Entity** : Erreur de formatage des entrées.
 - **429 Too Many Requests** : Vous avez dépassé la limite de requêtes. Veuillez réessayer plus tard.
 
 ---
@@ -82,12 +78,6 @@ Authentifie un utilisateur en vérifiant son nom d'utilisateur et son mot de pas
   }
   ```
 - **401 Unauthorized** : Nom d'utilisateur ou mot de passe incorrect.
-  ```json
-  {
-    "error": true,
-    "message": "Nom d'utilisateur ou mot de passe incorrect."
-  }
-  ```
 - **429 Too Many Requests** : Vous avez dépassé la limite de requêtes. Veuillez réessayer plus tard.
 
 ---
@@ -112,12 +102,6 @@ Récupère les informations de l'utilisateur actuellement authentifié à l'aide
   }
   ```
 - **401 Unauthorized** : Token JWT invalide ou manquant.
-  ```json
-  {
-    "error": true,
-    "message": "Non autorisé."
-  }
-  ```
 
 ---
 
@@ -149,13 +133,8 @@ Met à jour le profil de l'utilisateur actuel, par exemple son email ou son nom 
   }
   ```
 - **400 Bad Request** : Entrée invalide.
-  ```json
-  {
-    "error": true,
-    "message": "Données d'entrée invalides."
-  }
-  ```
 - **401 Unauthorized** : Token JWT invalide ou manquant.
+- **409 Conflict** : Email et/ou pseudonyme déjà pris.
 
 ---
 
@@ -182,8 +161,11 @@ Obtenir les informations détaillées d'un utilisateur spécifique à partir de 
     "admin": false
   }
   ```
-- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **400 Bad Request** : Id non fourni.
+- **401 Unauthorized** : Token JWT invalide ou expiré.
+- **403 Forbidden** : Token JWT avec droits insuffisants.
 - **404 Not Found** : Utilisateur introuvable.
+- **422 Unprocessable Entity** : Id non numérique.
 
 ---
 
@@ -224,9 +206,10 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
     }
   ]
   ```
-- **400 Bad Request** : Données de filtre invalides.
-- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
-- **404 Not Found** : Aucun utilisateur ne correspond aux critères de recherche.
+- **400 Bad Request** : Requête malformée.
+- **401 Unauthorized** : Token JWT invalide ou expiré.
+- **403 Forbidden** : Token JWT avec droits insuffisants.
+- **422 Unprocessable Entity** : Erreur de formatage des entrées.
 
 ---
 
@@ -481,5 +464,6 @@ Lever les restrictions imposées à un utilisateur avec l'ID indiqué.
 - **401 Unauthorized** : L'authentification a échoué ou l'utilisateur n'est pas autorisé à effectuer l'opération demandée.
 - **404 Not Found** : La ressource demandée n'a pas été trouvée.
 - **409 Conflict** : La requête ne peut pas être traitée en raison d'un conflit avec l'état actuel de la ressource.
+- **422 Unprocessable Entity** : La requête est bien formée, mais le contenu ne l'est pas.
 - **429 Too Many Requests** : L'utilisateur a dépassé la limite de requêtes.
 - **500 Internal Server Error** : Un message d'erreur générique indiquant un problème avec le serveur.

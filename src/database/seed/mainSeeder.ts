@@ -27,7 +27,7 @@ const seedDatabase = async (dataSource: DataSource) => {
     const admin = customerRepository.create(mainAdmin);
     await customerRepository.save(admin);
 
-    console.log('mainadmin user created.');
+    if (process.env.NODE_ENV !== 'test') console.log('mainadmin user created.');
   }
 };
 

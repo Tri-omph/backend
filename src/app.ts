@@ -29,23 +29,24 @@ app.use('/api/v1/admin', adminRoutes);
 
 app.use(errorHandler); // Gère les erreurs (voir src/middleware/ErrorHandler.ts). À laisser APRÈS les routes
 
-// Initialisation BDD
-AppDataSource.initialize()
-  .then(async (dataSource) => {
-    console.log('Data Source has been initialized!');
+// Initialisation BDD si on est pas en test
+if (process.env.NODE_ENV !== 'test')
+  AppDataSource.initialize()
+    .then(async (dataSource) => {
+      console.log('Data Source has been initialized!');
 
-    // Remplir la base de données avec les valeurs par défaut (mainadmin par exemple)
-    await seedDatabase(dataSource);
+      // Remplir la base de données avec les valeurs par défaut (mainadmin par exemple)
+      await seedDatabase(dataSource);
 
-    // Si la BDD ne charge pas, ne pas lancer le backend
-    const url = process.env.URL ?? 'http://localhost';
-    const port = process.env.PORT ?? 3000;
-    app.listen(port, () => {
-      console.log(`Server is running on ${url}:${port}`);
+      // Si la BDD est bien chargée, lancer le backend
+      const url = process.env.URL ?? 'http://localhost';
+      const port = process.env.PORT ?? 3000;
+      app.listen(port, () => {
+        console.log(`Server is running on ${url}:${port}`);
+      });
+    })
+    .catch((err) => {
+      console.error('Error during Data Source initialization:', err);
     });
-  })
-  .catch((err) => {
-    console.error('Error during Data Source initialization:', err);
-  });
 
 export default app;
