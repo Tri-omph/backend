@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node ./dist/app.js",
     "build": "tsc",
-    "test": "jest --passWithNoTests --runInBand --detectOpenHandles",
+    "test": "jest --detectOpenHandles",
     "lint": "eslint \"**/*.{js,ts}\"",
     "lint:fix": "eslint \"**/*.{js,ts}\" --fix",
     "format": "prettier --write \"**/*.{js,ts,json,md}\"",
