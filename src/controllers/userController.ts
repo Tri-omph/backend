@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 
 import { AppDataSource } from '../database/data-source';
 import { Customer } from '../models/Customer';
+import { isTest } from '../app';
 
 // Ce fichier contient les fonctions de contrôleur pour gérer les actions liées aux utilisateurs.
 // Les fonctions sont appelées depuis les routes définies dans `index.ts`. Chaque fonction
@@ -57,7 +58,7 @@ const createUser: RequestHandler = async (req, res) => {
       token: token,
     });
   } catch (error) {
-    console.error('Erreur lors de l inscription:', error);
+    if (!isTest) console.error('Erreur lors de l inscription:', error);
     res.status(500).json({ message: 'Erreur de serveur interne.' });
   }
 };
@@ -102,7 +103,7 @@ const loginUser: RequestHandler = async (req, res) => {
 
     res.status(200).json({ token });
   } catch (error) {
-    console.error('Erreur lors de la connexion:', error);
+    if (!isTest) console.error('Erreur lors de la connexion:', error);
     res.status(500).json({ message: 'Erreur de serveur' });
   }
 };
@@ -131,7 +132,12 @@ const getCurrentUser: RequestHandler = async (_req, res) => {
       .status(200)
       .json({ username: customer.username, email: customer.login });
   } catch (error) {
-    console.error('Erreur lors de la récupération de l utilisateur:', error);
+    if (!isTest)
+      if (!isTest)
+        console.error(
+          'Erreur lors de la récupération de l utilisateur:',
+          error
+        );
     res.status(500).json({ message: 'Erreur de serveur' });
   }
 };
@@ -173,7 +179,7 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
         'Les informations de l utilisateur ont été mises à jour avec succès.',
     });
   } catch (err) {
-    console.error('Erreur lors de la MAJ de l utilisateur:', err);
+    if (!isTest) console.error('Erreur lors de la MAJ de l utilisateur:', err);
     res.status(500).json({ message: 'Erreur de serveur' });
   }
 };
@@ -234,7 +240,7 @@ const findUser: RequestHandler = async (req, res) => {
 
     res.status(200).json(customers);
   } catch (error) {
-    console.error(error);
+    if (!isTest) console.error(error);
     res.status(500).json({ message: 'Error finding users' });
   }
 };
@@ -259,7 +265,7 @@ const getUserInfo: RequestHandler = async (req, res) => {
 
     res.status(200).json(user);
   } catch (error) {
-    console.error(error);
+    if (!isTest) console.error(error);
     res.status(500).json({ message: 'Error fetching user info' });
   }
 };

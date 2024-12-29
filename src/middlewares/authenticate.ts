@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
+import { isTest } from '../app';
 
 /** Middleware vérifiant si un utilisateur est connecté, et si le token n'est pas expiré
  *
@@ -32,7 +33,7 @@ export const authMiddleware: RequestHandler = (req, res, next) => {
 
     next();
   } catch (err) {
-    console.error('Token validation error:', err);
+    if (!isTest) console.error('Token validation error:', err);
     res.status(401).json({ message: 'Unauthorized: Token invalid or expired' });
   }
 };

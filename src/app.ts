@@ -29,8 +29,10 @@ app.use('/api/v1/admin', adminRoutes);
 
 app.use(errorHandler); // Gère les erreurs (voir src/middleware/ErrorHandler.ts). À laisser APRÈS les routes
 
+export const isTest = process.env.NODE_ENV === 'test';
+
 // Initialisation BDD si on est pas en test
-if (process.env.NODE_ENV !== 'test')
+if (!isTest)
   AppDataSource.initialize()
     .then(async (dataSource) => {
       console.log('Data Source has been initialized!');
