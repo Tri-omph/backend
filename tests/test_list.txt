@@ -1,3 +1,9 @@
+## 00_database.test.ts
+- Database Seeding
+  - devrait ajouter le mainadmin s'il n'existe pas
+  - ne devrait pas créer de deuxième main admin
+
+## 01_userController.test.ts
 - /users
   - POST /users
     - 201 si l'entrée est valide, devrait créer un utilisateur avec tous les champs définis et correctement initialisés
