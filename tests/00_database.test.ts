@@ -10,7 +10,7 @@ beforeAll(async () => {
 });
 
 describe('Database Seeding', () => {
-  it('should create the mainadmin user if it does not exist', async () => {
+  it("devrait ajouter le mainadmin s'il n'existe pas", async () => {
     const customerRepository = AppDataSource.getRepository(Customer);
 
     const admin = await customerRepository.findOneBy({
@@ -30,7 +30,7 @@ describe('Database Seeding', () => {
     expect(isPasswordValid).toBe(true);
   });
 
-  it('should not create a duplicate mainadmin user if already seeded', async () => {
+  it('ne devrait pas créer de deuxième main admin', async () => {
     const customerRepository = AppDataSource.getRepository(Customer);
 
     await seedDatabase(AppDataSource);
