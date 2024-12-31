@@ -200,7 +200,7 @@ describe('/users', () => {
         );
       });
 
-      it("422 si le mot de passe n'a pas de chiffres", async () => {
+      it("422 si le mot de passe n'a pas de chiffre", async () => {
         const response = await request(app)
           .post('/api/v1/users')
           .send({ ...generateUser(), password: 'Password!!?' });
@@ -421,7 +421,7 @@ describe('/users', () => {
           );
         });
 
-        it('401 si le token est faux', async () => {
+        it('401 si le token est invalide', async () => {
           const invalidToken = 'invalid.token';
           const response = await request(app)
             .get('/api/v1/users/me')
@@ -651,7 +651,7 @@ describe('/users', () => {
       });
 
       describe('401 Unauthorized', () => {
-        it('401 si le token est manquant', async () => {
+        it("401 s'il manque le token", async () => {
           const { username: newUsername, email: newEmail } = generateUser();
           const response = await request(app).patch('/api/v1/users/me').send({
             username: newUsername,
@@ -677,7 +677,7 @@ describe('/users', () => {
           expect(response.body).toHaveProperty('message');
         });
 
-        it('401 si le token a expiré', async () => {
+        it('401 si le token est valide mais expiré', async () => {
           const { username: newUsername, email: newEmail } = generateUser();
           const expiredToken = generateExpiredJWT(id, false);
           const response = await request(app)
@@ -694,7 +694,7 @@ describe('/users', () => {
       });
 
       describe('409 Conflict', () => {
-        it('409 le mail est déjà pris', async () => {
+        it('409 si le mail est déjà pris', async () => {
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
@@ -707,7 +707,7 @@ describe('/users', () => {
           );
         });
 
-        it('409 le pseudonyme est déjà pris', async () => {
+        it('409 si le pseudonyme est déjà pris', async () => {
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
@@ -720,7 +720,7 @@ describe('/users', () => {
           );
         });
 
-        it('409 le mail et le pseudonyme sont déjà pris', async () => {
+        it('409 si le mail et le pseudonyme sont déjà pris', async () => {
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
@@ -730,7 +730,7 @@ describe('/users', () => {
           expect(response.body).toHaveProperty('message');
         });
 
-        it('409 le mail est déjà pris, malgré un pseudonyme valide', async () => {
+        it('409 si le mail est déjà pris, malgré un pseudonyme valide', async () => {
           const { username: newUsername } = generateUser();
           const response = await request(app)
             .patch('/api/v1/users/me')
@@ -744,7 +744,7 @@ describe('/users', () => {
           );
         });
 
-        it('409 le pseudonyme est déjà pris, malgré un mail valide', async () => {
+        it('409 si le pseudonyme est déjà pris, malgré un mail valide', async () => {
           const { email: newEmail } = generateUser();
           const response = await request(app)
             .patch('/api/v1/users/me')
@@ -786,7 +786,7 @@ describe('/users', () => {
           );
         });
 
-        it("422 si le mot de passe n'a pas de chiffres", async () => {
+        it("422 si le mot de passe n'a pas de chiffre", async () => {
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
@@ -894,7 +894,7 @@ describe('/users', () => {
         );
       });
 
-      it('401 si le token est faux', async () => {
+      it('401 si le token est invalide', async () => {
         const invalidToken = 'invalid.token';
         const response = await request(app)
           .get(`/api/v1/users/info/${id}`)
@@ -949,7 +949,7 @@ describe('/users', () => {
     });
   });
 
-  describe('POST /users/find/', () => {
+  describe('POST /users/find', () => {
     let userToken: string,
       adminToken: string,
       mainadminToken: string,
@@ -1084,7 +1084,7 @@ describe('/users', () => {
     });
 
     describe('401 Unauthorized', () => {
-      it('401 si le token est manquant', async () => {
+      it("401 s'il manque le token", async () => {
         const response = await request(app).post('/api/v1/users/find/').send({
           pointsMin: 50,
           pointsMax: 200,
@@ -1108,7 +1108,7 @@ describe('/users', () => {
         expect(response.body).toHaveProperty('message');
       });
 
-      it('401 si le token est expiré', async () => {
+      it('401 si le token est valide mais expiré', async () => {
         const token = generateExpiredJWT(userId, false);
         const response = await request(app)
           .post('/api/v1/users/find/')
