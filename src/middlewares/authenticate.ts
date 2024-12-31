@@ -1,6 +1,5 @@
 import { RequestHandler } from 'express';
-import jwt from 'jsonwebtoken';
-import { isTest } from '../app';
+import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
 
 /** Middleware vérifiant si un utilisateur est connecté, et si le token n'est pas expiré
  *
@@ -14,7 +13,7 @@ export const authMiddleware: RequestHandler = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    res.status(401).json({ message: 'Unauthorized: No token provided' });
+    res.status(401).json({ message: 'Authentification requise.' });
     return;
   }
 
@@ -25,16 +24,19 @@ export const authMiddleware: RequestHandler = (req, res, next) => {
     );
 
     if (typeof decoded !== 'object' || !decoded) {
-      res.status(401).json({ message: 'Unauthorized: Invalid token' });
+      res.status(401).json({ message: 'Token invalide.' });
       return;
     }
 
     res.locals.user = decoded;
 
     next();
-  } catch (err) {
-    if (!isTest) console.error('Token validation error:', err);
-    res.status(401).json({ message: 'Unauthorized: Token invalid or expired' });
+  } catch (error) {
+    if (error instanceof TokenExpiredError)
+      res.status(401).json({ message: 'Le token a expiré.' });
+    else if (error instanceof JsonWebTokenError)
+      res.status(401).json({ message: 'Token invalide.' });
+    else res.status(500).json({ message: 'Erreur interne.' });
   }
 };
 

@@ -16,8 +16,8 @@ import { seedDatabase } from '../src/database/seed/mainSeeder';
  * Si on veut vérifier la valeur d'une variable, on utilise expect(la_variable).toBe...(), voyez toutes les possibilités avec l'autocomplétion.
  */
 
-export const generateExpiredJWT = (id: number, username: string) => {
-  const payload = { id, username };
+export const generateExpiredJWT = (id: number, admin: boolean) => {
+  const payload = { id, admin };
 
   const options = {
     expiresIn: -60,
