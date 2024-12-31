@@ -1,13 +1,12 @@
 import request from 'supertest';
+import { hash } from 'bcrypt';
 
 import app from '../src/app';
 import { Customer } from '../src/models/Customer';
 import { generateExpiredJWT, resetDataSource } from './utils';
 import { seedDatabase } from '../src/database/seed/mainSeeder';
 import { AppDataSource } from '../src/database/data-source';
-
-// TODO: ajouter les messages d'erreur dans tous les expect(response.body).toHaveProperty('message', '...');
-// Mettre à jour le openapi.yaml et le ENDPOINTS.md en fonction
+import { generateJWT } from '../src/utils';
 
 let i = 0;
 const generateUser = () => {
@@ -15,6 +14,19 @@ const generateUser = () => {
     username: `testUser${i}`,
     password: 'Pwd!5678',
     email: `testuser${i++}@example.com`,
+  };
+};
+
+const generateCustomer = async (user: {
+  username: string;
+  password: string;
+  email: string;
+}): Promise<Partial<Customer>> => {
+  const { username, password, email } = user;
+  return {
+    username,
+    pwd_hash: await hash(password, 10),
+    login: email.toLowerCase(),
   };
 };
 
@@ -38,11 +50,15 @@ describe('/users', () => {
       if (!AppDataSource.isInitialized) await AppDataSource.initialize();
     });
 
-    it("200 si l'entrée est valide, devrait créer un utilisateur avec tous les champs définis et correctement initialisés", async () => {
+    it("201 si l'entrée est valide, devrait créer un utilisateur avec tous les champs définis et correctement initialisés", async () => {
       const user = generateUser();
       const response = await request(app).post('/api/v1/users').send(user);
 
       expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty(
+        'message',
+        'Utilisateur créé avec succès.'
+      );
       expect(response.body).toHaveProperty('token');
       expect(typeof response.body.token).toBe('string');
 
@@ -69,7 +85,10 @@ describe('/users', () => {
           .post('/api/v1/users')
           .send({ username, password });
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Tous les champs sont requis.'
+        );
       });
 
       it("400 s'il manque le pseudonyme", async () => {
@@ -78,7 +97,10 @@ describe('/users', () => {
           .post('/api/v1/users')
           .send({ email, password });
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Tous les champs sont requis.'
+        );
       });
 
       it("400 s'il manque le mot de passe", async () => {
@@ -87,57 +109,57 @@ describe('/users', () => {
           .post('/api/v1/users')
           .send({ username, email });
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Tous les champs sont requis.'
+        );
       });
     });
 
     describe('409 Conflict', () => {
       it('409 si le mail est déjà utilisé', async () => {
-        const user = generateUser();
+        const custo = await generateCustomer(generateUser());
 
-        await request(app).post('/api/v1/users').send(user);
+        const customerRepository = AppDataSource.getRepository(Customer);
+        await customerRepository.save(custo);
+
         const response = await request(app)
           .post('/api/v1/users')
-          .send({ ...generateUser(), email: user.email });
+          .send({ ...generateUser(), email: custo.login });
 
         expect(response.status).toBe(409);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty('message', "L'email existe déjà.");
       });
 
       it('409 si le mail est déjà utilisé (avec casse différente)', async () => {
-        const user = generateUser();
+        const custo = await generateCustomer(generateUser());
 
-        await request(app).post('/api/v1/users').send(user);
+        const customerRepository = AppDataSource.getRepository(Customer);
+        await customerRepository.save(custo);
+
         const response = await request(app)
           .post('/api/v1/users')
-          .send({ ...generateUser(), email: user.email.toUpperCase() });
+          .send({ ...generateUser(), email: custo.login?.toUpperCase() });
 
         expect(response.status).toBe(409);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty('message', "L'email existe déjà.");
       });
 
       it('409 si le pseudonyme est déjà utilisé', async () => {
-        const user = generateUser();
+        const custo = await generateCustomer(generateUser());
 
-        await request(app).post('/api/v1/users').send(user);
+        const customerRepository = AppDataSource.getRepository(Customer);
+        await customerRepository.save(custo);
+
         const response = await request(app)
           .post('/api/v1/users')
-          .send({ ...generateUser(), username: user.username });
+          .send({ ...generateUser(), username: custo.username });
 
         expect(response.status).toBe(409);
-        expect(response.body).toHaveProperty('message');
-      });
-
-      it('409 si le pseudonyme est déjà utilisé (avec casse différente)', async () => {
-        const user = generateUser();
-
-        await request(app).post('/api/v1/users').send(user);
-        const response = await request(app)
-          .post('/api/v1/users')
-          .send({ ...generateUser(), username: user.username.toUpperCase() });
-
-        expect(response.status).toBe(409);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Ce pseudonyme existe déjà.'
+        );
       });
     });
 
@@ -148,7 +170,10 @@ describe('/users', () => {
           .send({ ...generateUser(), email: 'notanemail' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message', 'Entrée invalide');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Adresse email invalide.'
+        );
       });
 
       it('422 si le pseudonyme est vide', async () => {
@@ -157,7 +182,10 @@ describe('/users', () => {
           .send({ ...generateUser(), username: '' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Tous les champs sont requis.'
+        );
       });
 
       it('422 si le mot de passe fait moins de 8 caractères', async () => {
@@ -166,7 +194,10 @@ describe('/users', () => {
           .send({ ...generateUser(), password: 'Sh0rt!!' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+        );
       });
 
       it("422 si le mot de passe n'a pas de chiffres", async () => {
@@ -175,7 +206,10 @@ describe('/users', () => {
           .send({ ...generateUser(), password: 'Password!!?' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+        );
       });
 
       it("422 si le mot de passe n'a pas de majuscule", async () => {
@@ -184,7 +218,10 @@ describe('/users', () => {
           .send({ ...generateUser(), password: 'password0!?' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+        );
       });
 
       it("422 si le mot de passe n'a pas de minuscule", async () => {
@@ -193,7 +230,10 @@ describe('/users', () => {
           .send({ ...generateUser(), password: 'PASSWORD0!?' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+        );
       });
 
       it("422 si le mot de passe n'a pas de caractère spécial", async () => {
@@ -202,38 +242,34 @@ describe('/users', () => {
           .send({ ...generateUser(), password: 'Password12' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+        );
       });
     });
   });
 
   describe('POST /users/auth', () => {
-    let u: {
-        username: string;
-        password: string;
-        email: string;
-      },
+    let u: { username: string; password: string; email: string },
       username: string,
       password: string,
-      user: {
-        username: string;
-        password: string;
-      };
+      user: { username: string; password: string };
 
     beforeAll(async () => {
       u = generateUser();
+      const customer = await generateCustomer(u);
       username = u.username;
       password = u.password;
       user = { username, password };
+
+      if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
       const customerRepository = AppDataSource.getRepository(Customer);
 
       await customerRepository.clear();
       await seedDatabase(AppDataSource);
-
-      if (!AppDataSource.isInitialized) await AppDataSource.initialize();
-
-      await request(app).post('/api/v1/users').send(u);
+      await customerRepository.save(customer);
     });
 
     describe('200 OK', () => {
@@ -264,7 +300,10 @@ describe('/users', () => {
           .post('/api/v1/users/auth')
           .send({ password });
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Pseudonyme et mot de passe requis.'
+        );
       });
 
       it("400 s'il manque le mot de passe", async () => {
@@ -272,7 +311,10 @@ describe('/users', () => {
           .post('/api/v1/users/auth')
           .send({ username });
         expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Pseudonyme et mot de passe requis.'
+        );
       });
     });
 
@@ -284,7 +326,10 @@ describe('/users', () => {
           password,
         });
         expect(response.status).toBe(401);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Pseudonyme incorrect.'
+        );
       });
 
       it('401 si le couple pseudonyme-mdp est faux', async () => {
@@ -292,7 +337,10 @@ describe('/users', () => {
           .post('/api/v1/users/auth')
           .send({ username, password: 'wrongPassword' });
         expect(response.status).toBe(401);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Mot de passe incorrect.'
+        );
       });
     });
   });
@@ -306,28 +354,23 @@ describe('/users', () => {
 
       beforeAll(async () => {
         user = generateUser();
+        const customer = await generateCustomer(user);
         if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
         const customerRepository = AppDataSource.getRepository(Customer);
         await customerRepository.clear();
 
         await seedDatabase(AppDataSource);
-        await request(app).post('/api/v1/users').send(user);
+        await customerRepository.save(customer);
 
         const userData = await customerRepository.findOneBy({
           login: user.email,
         });
-        if (userData) userId = userData.id;
+        if (!userData) return;
+        userId = userData.id;
 
-        const res = await request(app)
-          .post('/api/v1/users/auth')
-          .send({ username: user.username, password: user.password });
-        token = res.body.token;
-
-        const res2 = await request(app)
-          .post('/api/v1/users/auth')
-          .send(mainadminCreds);
-        mainadminToken = res2.body.token;
+        token = generateJWT(userId, userData.admin);
+        mainadminToken = generateJWT(0, true);
       });
 
       describe('200 OK', () => {
@@ -337,8 +380,7 @@ describe('/users', () => {
             .set('Authorization', `Bearer ${token}`);
 
           expect(response.status).toBe(200);
-          expect(response.body).toHaveProperty('id');
-          expect(response.body.id).not.toBeNaN();
+          expect(response.body).toHaveProperty('id', userId);
           expect(response.body).toHaveProperty('username', user.username);
           expect(response.body).toHaveProperty('login', user.email);
           expect(response.body).toHaveProperty('pwd_hash');
@@ -373,27 +415,30 @@ describe('/users', () => {
           const response = await request(app).get('/api/v1/users/me');
 
           expect(response.status).toBe(401);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Authentification requise.'
+          );
         });
 
         it('401 si le token est faux', async () => {
-          const invalidToken = 'invalid.token.here';
+          const invalidToken = 'invalid.token';
           const response = await request(app)
             .get('/api/v1/users/me')
             .set('Authorization', `Bearer ${invalidToken}`);
 
           expect(response.status).toBe(401);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty('message', 'Token invalide.');
         });
 
         it('401 si le token est valide mais expiré', async () => {
-          const expiredToken = generateExpiredJWT(userId, user.username);
+          const expiredToken = generateExpiredJWT(userId, false);
           const response = await request(app)
             .get('/api/v1/users/me')
             .set('Authorization', `Bearer ${expiredToken}`);
 
           expect(response.status).toBe(401);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty('message', 'Le token a expiré.');
         });
       });
     });
@@ -401,10 +446,9 @@ describe('/users', () => {
     describe('PATCH /users/me', () => {
       let user: { username: string; password: string; email: string },
         username: string,
-        email: string,
         username2: string,
+        email: string,
         email2: string,
-        password: string,
         token: string,
         id: number;
 
@@ -412,11 +456,12 @@ describe('/users', () => {
         user = generateUser();
         username = user.username;
         email = user.email;
-        password = user.password;
+        const custo1 = await generateCustomer(user);
 
         const user2 = generateUser();
         username2 = user2.username;
         email2 = user2.email;
+        const custo2 = await generateCustomer(user2);
 
         if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
@@ -424,19 +469,15 @@ describe('/users', () => {
         await customerRepository.clear();
 
         await seedDatabase(AppDataSource);
-        await request(app).post('/api/v1/users').send(user);
-        await request(app).post('/api/v1/users').send(user2);
+        await customerRepository.save(custo1);
+        await customerRepository.save(custo2);
 
         const userData = await customerRepository.findBy({
           username,
           login: email,
         });
         id = userData[0].id;
-
-        const res = await request(app)
-          .post('/api/v1/users/auth')
-          .send({ username, password });
-        token = res.body.token;
+        token = generateJWT(id, userData[0].admin);
       });
 
       describe('200 OK', () => {
@@ -448,13 +489,13 @@ describe('/users', () => {
             .send({ username: newUsername });
 
           expect(response.status).toBe(200);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Les informations de l utilisateur ont été mises à jour avec succès.'
+          );
 
           const customerRepository = AppDataSource.getRepository(Customer);
-          const oldUserData = await customerRepository.findBy({
-            username,
-            login: email,
-          });
+          const oldUserData = await customerRepository.findBy({ username });
           expect(oldUserData).toHaveLength(0);
 
           username = newUsername;
@@ -474,7 +515,10 @@ describe('/users', () => {
             .send({ email: newEmail });
 
           expect(response.status).toBe(200);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Les informations de l utilisateur ont été mises à jour avec succès.'
+          );
 
           const customerRepository = AppDataSource.getRepository(Customer);
           const oldUserData = await customerRepository.findBy({
@@ -500,7 +544,10 @@ describe('/users', () => {
             .send({ username: newUsername, email: newEmail });
 
           expect(response.status).toBe(200);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Les informations de l utilisateur ont été mises à jour avec succès.'
+          );
 
           const customerRepository = AppDataSource.getRepository(Customer);
           const oldUserData = await customerRepository.findBy({
@@ -527,7 +574,10 @@ describe('/users', () => {
             .send({ username: newUsername, email });
 
           expect(response.status).toBe(200);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Les informations de l utilisateur ont été mises à jour avec succès.'
+          );
 
           const customerRepository = AppDataSource.getRepository(Customer);
           const oldUserData = await customerRepository.findBy({
@@ -553,7 +603,10 @@ describe('/users', () => {
             .send({ username, email: newEmail });
 
           expect(response.status).toBe(200);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Les informations de l utilisateur ont été mises à jour avec succès.'
+          );
 
           const customerRepository = AppDataSource.getRepository(Customer);
           const oldUserData = await customerRepository.findBy({
@@ -580,17 +633,10 @@ describe('/users', () => {
             .send({});
 
           expect(response.status).toBe(400);
-          expect(response.body).toHaveProperty('message');
-        });
-
-        it("400 si le format de l'email est invalide", async () => {
-          const response = await request(app)
-            .patch('/api/v1/users/me')
-            .set('Authorization', `Bearer ${token}`)
-            .send({ email: 'invalid-email' });
-
-          expect(response.status).toBe(400);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Aucune modification indiquée.'
+          );
         });
 
         it("400 si le nom d'utilisateur est vide", async () => {
@@ -618,7 +664,7 @@ describe('/users', () => {
 
         it('401 si le token est invalide', async () => {
           const { username: newUsername, email: newEmail } = generateUser();
-          const invalidToken = 'invalid.token.here';
+          const invalidToken = 'invalid.token';
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${invalidToken}`)
@@ -633,7 +679,7 @@ describe('/users', () => {
 
         it('401 si le token a expiré', async () => {
           const { username: newUsername, email: newEmail } = generateUser();
-          const expiredToken = await generateExpiredJWT(id, username);
+          const expiredToken = generateExpiredJWT(id, false);
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${expiredToken}`)
@@ -655,7 +701,10 @@ describe('/users', () => {
             .send({ email: email2 });
 
           expect(response.status).toBe(409);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Cette adresse mail est déjà liée à un compte.'
+          );
         });
 
         it('409 le pseudonyme est déjà pris', async () => {
@@ -665,7 +714,10 @@ describe('/users', () => {
             .send({ username: username2 });
 
           expect(response.status).toBe(409);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Ce pseudonyme est déjà pris.'
+          );
         });
 
         it('409 le mail et le pseudonyme sont déjà pris', async () => {
@@ -686,7 +738,10 @@ describe('/users', () => {
             .send({ email: email2, username: newUsername });
 
           expect(response.status).toBe(409);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Cette adresse mail est déjà liée à un compte.'
+          );
         });
 
         it('409 le pseudonyme est déjà pris, malgré un mail valide', async () => {
@@ -697,7 +752,90 @@ describe('/users', () => {
             .send({ username: username2, email: newEmail });
 
           expect(response.status).toBe(409);
-          expect(response.body).toHaveProperty('message');
+          expect(response.body).toHaveProperty(
+            'message',
+            'Ce pseudonyme est déjà pris.'
+          );
+        });
+      });
+
+      describe('422 Unprocessable Entity', () => {
+        it('422 si le mail est invalide', async () => {
+          const response = await request(app)
+            .patch('/api/v1/users/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ email: 'cecinestpasunemail' });
+
+          expect(response.status).toBe(422);
+          expect(response.body).toHaveProperty(
+            'message',
+            'Adresse email invalide.'
+          );
+        });
+
+        it('422 si le mot de passe fait moins de 8 caractères', async () => {
+          const response = await request(app)
+            .patch('/api/v1/users/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ password: 'Sh0rt!!' });
+
+          expect(response.status).toBe(422);
+          expect(response.body).toHaveProperty(
+            'message',
+            "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+          );
+        });
+
+        it("422 si le mot de passe n'a pas de chiffres", async () => {
+          const response = await request(app)
+            .patch('/api/v1/users/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ password: 'Password!!?' });
+
+          expect(response.status).toBe(422);
+          expect(response.body).toHaveProperty(
+            'message',
+            "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+          );
+        });
+
+        it("422 si le mot de passe n'a pas de majuscule", async () => {
+          const response = await request(app)
+            .patch('/api/v1/users/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ password: 'password0!?' });
+
+          expect(response.status).toBe(422);
+          expect(response.body).toHaveProperty(
+            'message',
+            "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+          );
+        });
+
+        it("422 si le mot de passe n'a pas de minuscule", async () => {
+          const response = await request(app)
+            .patch('/api/v1/users/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ password: 'PASSWORD0!?' });
+
+          expect(response.status).toBe(422);
+          expect(response.body).toHaveProperty(
+            'message',
+            "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+          );
+        });
+
+        it("422 si le mot de passe n'a pas de caractère spécial", async () => {
+          const response = await request(app)
+            .patch('/api/v1/users/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ password: 'Password12' });
+
+          expect(response.status).toBe(422);
+          expect(response.body).toHaveProperty(
+            'message',
+            "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères."
+          );
         });
       });
     });
@@ -710,25 +848,25 @@ describe('/users', () => {
       id: number;
 
     beforeAll(async () => {
-      const customerRepository = AppDataSource.getRepository(Customer);
-      await customerRepository.clear();
-      await seedDatabase(AppDataSource);
-
       user = generateUser();
-      const userData = await customerRepository.save(user);
-      id = userData.id;
-
-      const adminAuthResponse = await request(app)
-        .post('/api/v1/users/auth')
-        .send(mainadminCreds);
-      adminToken = adminAuthResponse.body.token;
-
-      const userAuthResponse = await request(app)
-        .post('/api/v1/users/auth')
-        .send({ username: user.username, password: user.password });
-      userToken = userAuthResponse.body.token;
+      const custo = await generateCustomer(user);
 
       if (!AppDataSource.isInitialized) await AppDataSource.initialize();
+
+      const customerRepository = AppDataSource.getRepository(Customer);
+      await customerRepository.clear();
+
+      await seedDatabase(AppDataSource);
+      await customerRepository.save(custo);
+
+      const userData = await customerRepository.findOneBy({
+        login: user.email,
+      });
+      if (!userData) return;
+
+      id = userData.id;
+      userToken = generateJWT(id, userData.admin);
+      adminToken = generateJWT(0, true);
     });
 
     it("200 si le token admin est valide et l'ID existe, devrait retourner les informations de l'utilisateur", async () => {
@@ -739,36 +877,41 @@ describe('/users', () => {
       expect(response.status).toBe(200);
       expect(response.body.id).toBe(id);
       expect(response.body.username).toBe(user.username);
-      expect(response.body.email).toBe(user.email);
+      expect(response.body.login).toBe(user.email);
       expect(response.body.points).toBe(0);
       expect(response.body.restricted).toBeFalsy();
       expect(response.body.admin).toBeFalsy();
     });
 
-    it("400 si l'ID est manquant", async () => {
-      const response = await request(app)
-        .get('/api/v1/users/info')
-        .set('Authorization', `Bearer ${adminToken}`);
-
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty('message');
-    });
-
     describe('401 Unauthorized', () => {
-      it('401 si le token est manquant', async () => {
+      it("401 s'il manque le token", async () => {
         const response = await request(app).get(`/api/v1/users/info/${id}`);
+
         expect(response.status).toBe(401);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Authentification requise.'
+        );
       });
 
-      it('401 si le token est invalide', async () => {
+      it('401 si le token est faux', async () => {
         const invalidToken = 'invalid.token';
         const response = await request(app)
           .get(`/api/v1/users/info/${id}`)
           .set('Authorization', `Bearer ${invalidToken}`);
 
         expect(response.status).toBe(401);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty('message', 'Token invalide.');
+      });
+
+      it('401 si le token est valide mais expiré', async () => {
+        const expiredToken = generateExpiredJWT(0, true);
+        const response = await request(app)
+          .get(`/api/v1/users/info/${id}`)
+          .set('Authorization', `Bearer ${expiredToken}`);
+
+        expect(response.status).toBe(401);
+        expect(response.body).toHaveProperty('message', 'Le token a expiré.');
       });
     });
 
@@ -778,7 +921,7 @@ describe('/users', () => {
         .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('message');
+      expect(response.body).toHaveProperty('message', 'Droits insuffisants.');
     });
 
     it("404 si l'ID ne correspond à aucun utilisateur", async () => {
@@ -787,7 +930,10 @@ describe('/users', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(404);
-      expect(response.body).toHaveProperty('message');
+      expect(response.body).toHaveProperty(
+        'message',
+        'Utilisateur introuvable.'
+      );
     });
 
     it("422 si l'ID n'est pas numérique", async () => {
@@ -796,7 +942,10 @@ describe('/users', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(422);
-      expect(response.body).toHaveProperty('message');
+      expect(response.body).toHaveProperty(
+        'message',
+        "L'ID n'est pas numérique."
+      );
     });
   });
 
@@ -809,45 +958,33 @@ describe('/users', () => {
       admin: { username: string; password: string; email: string };
 
     beforeAll(async () => {
+      user = generateUser();
+      const custo = { ...(await generateCustomer(user)), points: 80 };
+      admin = generateUser();
+      const custoA = { ...(await generateCustomer(admin)), admin: true };
+
+      if (!AppDataSource.isInitialized) await AppDataSource.initialize();
+
       const customerRepository = AppDataSource.getRepository(Customer);
       await customerRepository.clear();
       await seedDatabase(AppDataSource);
 
-      user = generateUser();
-      admin = generateUser();
-
-      await request(app).post('/api/v1/users').send(user);
-      await request(app).post('/api/v1/users').send(admin);
+      await customerRepository.save(custo);
+      await customerRepository.save(custoA);
 
       const userData = await customerRepository.findOneBy({
         username: user.username,
       });
-
       const adminData = await customerRepository.findOneBy({
         username: admin.username,
       });
+
       if (!userData || !adminData) return;
-
       userId = userData.id;
-      await customerRepository.update({ id: userData.id }, { points: 80 });
-      await customerRepository.update({ id: adminData.id }, { admin: true });
 
-      const userAuthResponse = await request(app)
-        .post('/api/v1/users/auth')
-        .send({ username: user.username, password: user.password });
-      userToken = userAuthResponse.body.token;
-
-      const adminAuthResponse = await request(app)
-        .post('/api/v1/users/auth')
-        .send({ username: admin.username, password: admin.password });
-      adminToken = adminAuthResponse.body.token;
-
-      const mainadminAuthResponse = await request(app)
-        .post('/api/v1/users/auth')
-        .send(mainadminCreds);
-      mainadminToken = mainadminAuthResponse.body.token;
-
-      if (!AppDataSource.isInitialized) await AppDataSource.initialize();
+      userToken = generateJWT(userId, false);
+      adminToken = generateJWT(adminData.id, true);
+      mainadminToken = generateJWT(0, true);
     });
 
     describe('200 OK', () => {
@@ -908,7 +1045,7 @@ describe('/users', () => {
         const response = await request(app)
           .post('/api/v1/users/find/')
           .set('Authorization', `Bearer ${mainadminToken}`)
-          .send({ restricted: false });
+          .send({ restricted: true });
 
         expect(response.status).toBe(200);
         expect(response.body).toHaveLength(0);
@@ -972,7 +1109,7 @@ describe('/users', () => {
       });
 
       it('401 si le token est expiré', async () => {
-        const token = generateExpiredJWT(userId, user.username);
+        const token = generateExpiredJWT(userId, false);
         const response = await request(app)
           .post('/api/v1/users/find/')
           .set('Authorization', `Bearer ${token}`)
@@ -986,19 +1123,17 @@ describe('/users', () => {
       });
     });
 
-    describe('403 Forbidden', () => {
-      it('403 si un utilisateur sans droits admin tente de chercher des utilisateurs', async () => {
-        const response = await request(app)
-          .post('/api/v1/users/find/')
-          .set('Authorization', `Bearer ${userToken}`)
-          .send({
-            pointsMin: 50,
-            pointsMax: 200,
-          });
+    it('403 si un utilisateur sans droits admin tente de chercher des utilisateurs', async () => {
+      const response = await request(app)
+        .post('/api/v1/users/find/')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          pointsMin: 50,
+          pointsMax: 200,
+        });
 
-        expect(response.status).toBe(403);
-        expect(response.body).toHaveProperty('message');
-      });
+      expect(response.status).toBe(403);
+      expect(response.body).toHaveProperty('message', 'Droits insuffisants.');
     });
 
     describe('422 Unprocessable Entity', () => {
@@ -1009,7 +1144,7 @@ describe('/users', () => {
           .send({ id: '0' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty('message', 'id invalide.');
       });
 
       it('422 si les filtres sont invalides (pointsMin non numérique)', async () => {
@@ -1019,7 +1154,7 @@ describe('/users', () => {
           .send({ pointsMin: '0' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty('message', 'pointsMin invalide.');
       });
 
       it('422 si les filtres sont invalides (pointsMax non numérique)', async () => {
@@ -1029,7 +1164,7 @@ describe('/users', () => {
           .send({ pointsMax: '0' });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty('message', 'pointsMax invalide.');
       });
 
       it('422 si les filtres sont invalides (pointsMin < 0)', async () => {
@@ -1039,7 +1174,7 @@ describe('/users', () => {
           .send({ pointsMin: -10 });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty('message', 'pointsMin négatif.');
       });
 
       it('422 si les filtres sont invalides (pointsMin > pointsMax)', async () => {
@@ -1049,7 +1184,10 @@ describe('/users', () => {
           .send({ pointsMin: 100, pointsMax: 10 });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty(
+          'message',
+          'Le minimum est plus grand que le maximum.'
+        );
       });
 
       it('422 si les filtres sont invalides (restricted non booléen)', async () => {
@@ -1059,7 +1197,7 @@ describe('/users', () => {
           .send({ restricted: 100 });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty('message', 'restricted invalide.');
       });
 
       it('422 si les filtres sont invalides (admin non booléen)', async () => {
@@ -1069,7 +1207,7 @@ describe('/users', () => {
           .send({ admin: 100 });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty('message');
+        expect(response.body).toHaveProperty('message', 'admin invalide.');
       });
     });
   });

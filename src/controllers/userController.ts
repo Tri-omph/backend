@@ -1,9 +1,10 @@
 import { RequestHandler } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 
 import { AppDataSource } from '../database/data-source';
 import { Customer } from '../models/Customer';
+import { isTest } from '../app';
+import { generateJWT, passwordRegex, verifyEmail } from '../utils';
 
 // Ce fichier contient les fonctions de contrôleur pour gérer les actions liées aux utilisateurs.
 // Les fonctions sont appelées depuis les routes définies dans `index.ts`. Chaque fonction
@@ -15,25 +16,49 @@ import { Customer } from '../models/Customer';
 const createUser: RequestHandler = async (req, res) => {
   const { username, password, email } = req.body;
 
+  if (username === '') {
+    res.status(422).json({
+      message: 'Tous les champs sont requis.',
+    });
+    return;
+  }
+
   if (!username || !email || !password) {
-    res.status(400).json({ message: 'Entrée invalide' });
+    res.status(400).json({
+      message: 'Tous les champs sont requis.',
+    });
+    return;
+  }
+
+  if (!verifyEmail(email)) {
+    res.status(422).json({ message: 'Adresse email invalide.' });
+    return;
+  }
+
+  if (!passwordRegex.test(password)) {
+    res.status(422).json({
+      message:
+        "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères.",
+    });
     return;
   }
 
   const customerRepository = AppDataSource.getRepository(Customer);
 
   try {
-    const existingEmail = await customerRepository.findOneBy({ login: email });
-    const existingUser = await customerRepository.findOneBy({
-      username: username,
+    const existingEmail = await customerRepository.findOneBy({
+      login: email.toLowerCase(),
     });
-
     if (existingEmail) {
       res.status(409).json({ message: "L'email existe déjà." });
       return;
     }
+
+    const existingUser = await customerRepository.findOneBy({
+      username,
+    });
     if (existingUser) {
-      res.status(409).json({ message: "Le nom d'utilisateur existe déjà." });
+      res.status(409).json({ message: 'Ce pseudonyme existe déjà.' });
       return;
     }
 
@@ -41,23 +66,20 @@ const createUser: RequestHandler = async (req, res) => {
 
     const newCustomer = customerRepository.create({
       username: username,
-      login: email,
+      login: email.toLowerCase(),
       pwd_hash: hashedPassword,
     });
 
     await customerRepository.save(newCustomer);
 
-    const token = jwt.sign(
-      { id: newCustomer.id, username: newCustomer.username },
-      process.env.JWT_SECRET ?? 'your_secret_key'
-    );
+    const token = generateJWT(newCustomer.id, false);
 
     res.status(201).json({
       message: 'Utilisateur créé avec succès.',
       token: token,
     });
   } catch (error) {
-    console.error('Erreur lors de l inscription:', error);
+    if (!isTest) console.error('Erreur lors de l inscription:', error);
     res.status(500).json({ message: 'Erreur de serveur interne.' });
   }
 };
@@ -69,9 +91,7 @@ const loginUser: RequestHandler = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    res
-      .status(400)
-      .json({ message: 'Nom d utilisateur ou mot de passe requis.' });
+    res.status(400).json({ message: 'Pseudonyme et mot de passe requis.' });
     return;
   }
 
@@ -81,9 +101,7 @@ const loginUser: RequestHandler = async (req, res) => {
     const customer = await customerRepository.findOneBy({ username: username });
 
     if (!customer) {
-      res
-        .status(401)
-        .json({ error: true, message: ' Nom d utilisateur incorrect.' });
+      res.status(401).json({ error: true, message: 'Pseudonyme incorrect.' });
       return;
     }
 
@@ -94,15 +112,11 @@ const loginUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    const token = jwt.sign(
-      { id: customer.id, username: customer.username },
-      process.env.JWT_SECRET ?? 'your_secret_key',
-      {}
-    );
+    const token = generateJWT(customer.id, customer.admin);
 
     res.status(200).json({ token });
   } catch (error) {
-    console.error('Erreur lors de la connexion:', error);
+    if (!isTest) console.error('Erreur lors de la connexion:', error);
     res.status(500).json({ message: 'Erreur de serveur' });
   }
 };
@@ -112,10 +126,10 @@ const loginUser: RequestHandler = async (req, res) => {
  */
 const getCurrentUser: RequestHandler = async (_req, res) => {
   try {
-    const customerId = res.locals.user?.id;
+    const customerId = res.locals.user.id;
 
-    if (!customerId) {
-      res.status(401).json({ message: 'Pas d id dans le token' });
+    if (!res.locals.user) {
+      res.status(401).json({ message: 'Authentification requise.' });
       return;
     }
 
@@ -127,11 +141,10 @@ const getCurrentUser: RequestHandler = async (_req, res) => {
       return;
     }
 
-    res
-      .status(200)
-      .json({ username: customer.username, email: customer.login });
+    res.status(200).json(customer);
   } catch (error) {
-    console.error('Erreur lors de la récupération de l utilisateur:', error);
+    if (!isTest)
+      console.error('Erreur lors de la récupération de l utilisateur:', error);
     res.status(500).json({ message: 'Erreur de serveur' });
   }
 };
@@ -141,10 +154,17 @@ const getCurrentUser: RequestHandler = async (_req, res) => {
  */
 const updateCurrentUser: RequestHandler = async (req, res) => {
   try {
-    const customerId = res.locals.user?.id;
+    const customerId = res.locals.user.id;
 
     if (!customerId) {
-      res.status(401).json({ message: 'Unauthorized: No user ID in token' });
+      res.status(401).json({ message: 'Token invalide.' });
+      return;
+    }
+
+    const { username, email, password } = req.body;
+
+    if (!username && !email && !password) {
+      res.status(400).json({ message: 'Aucune modification indiquée.' });
       return;
     }
 
@@ -152,18 +172,55 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
     const customer = await customerRepository.findOneBy({ id: customerId });
 
     if (!customer) {
-      res.status(404).json({ message: 'Utilisateur non trouvé' });
+      res.status(404).json({ message: 'Utilisateur non trouvé.' });
       return;
     }
 
-    const updatedData = req.body;
+    if (username && username !== customer.username) {
+      if (username.length === 0) {
+        res.status(400).json({ message: 'Le pseudonyme est vide.' });
+        return;
+      }
 
-    // Update user fields
-    if (updatedData.username) customer.username = updatedData.username;
-    if (updatedData.email) customer.login = updatedData.email;
+      const duplicateUsername = await customerRepository.findBy({ username });
+      if (
+        duplicateUsername.length !== 0 &&
+        duplicateUsername[0].id != customerId
+      ) {
+        res.status(409).json({ message: 'Ce pseudonyme est déjà pris.' });
+        return;
+      }
 
-    if (updatedData.password) {
-      customer.pwd_hash = await bcrypt.hash(updatedData.password, 10);
+      customer.username = username;
+    }
+
+    if (email && email !== customer.login) {
+      if (!verifyEmail(email)) {
+        res.status(422).json({ message: 'Adresse email invalide.' });
+        return;
+      }
+
+      const duplicateEmail = await customerRepository.findBy({ login: email });
+      if (duplicateEmail.length !== 0 && duplicateEmail[0].id != customerId) {
+        res
+          .status(409)
+          .json({ message: 'Cette adresse mail est déjà liée à un compte.' });
+        return;
+      }
+
+      customer.login = email;
+    }
+
+    if (password) {
+      if (!passwordRegex.test(password)) {
+        res.status(422).json({
+          message:
+            "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être d'au moins 8 caractères.",
+        });
+        return;
+      }
+
+      customer.pwd_hash = await bcrypt.hash(password, 10);
     }
 
     await customerRepository.save(customer);
@@ -173,12 +230,41 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
         'Les informations de l utilisateur ont été mises à jour avec succès.',
     });
   } catch (err) {
-    console.error('Erreur lors de la MAJ de l utilisateur:', err);
-    res.status(500).json({ message: 'Erreur de serveur' });
+    if (!isTest) console.error('Erreur lors de la MAJ de l utilisateur:', err);
+    res.status(500).json({ message: 'Erreur de serveur.' });
   }
 };
 
-interface UserFilter {
+const getUserInfo: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+  if (!id || id === '') {
+    res.status(400).json({ message: 'Aucun ID fourni.' });
+    return;
+  }
+
+  if (isNaN(parseInt(id))) {
+    res.status(422).json({ message: "L'ID n'est pas numérique." });
+    return;
+  }
+
+  try {
+    const user = await AppDataSource.getRepository(Customer).findOneBy({
+      id: parseInt(id),
+    });
+
+    if (!user) {
+      res.status(404).json({ message: 'Utilisateur introuvable.' });
+      return;
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    if (!isTest) console.error(error);
+    res.status(500).json({ message: 'Error fetching user info' });
+  }
+};
+
+export interface UserFilter {
   id: number;
   username: string;
   pointsMin: number;
@@ -197,70 +283,104 @@ const findUser: RequestHandler = async (req, res) => {
     login,
     restricted,
     admin,
-  }: Partial<UserFilter> = req.query;
+  }: Record<keyof UserFilter, unknown> = req.body;
+  // TODO: changer de params à query, donc de POST à GET
 
   try {
     const customerRepository = AppDataSource.getRepository(Customer);
 
+    // Si aucun paramètre n'est donné, on prend tout
+    if (
+      [id, username, pointsMin, pointsMax, login, restricted, admin]
+        .map((e) => e === undefined || e === '')
+        .reduce((p, c) => p && c, true)
+    ) {
+      const customers = await customerRepository.find();
+      res.status(200).json(customers);
+      return;
+    }
+
     let query = customerRepository.createQueryBuilder('customer');
 
-    if (id !== undefined) query = query.andWhere('customer.id = :id', { id });
+    if (id !== undefined) {
+      if (typeof id !== 'number' || isNaN(id)) {
+        res.status(422).send({ message: 'id invalide.' });
+        return;
+      }
+      query = query.andWhere('customer.id = :id', { id });
+    }
+
     if (username !== undefined)
-      query = query.andWhere('customer.username LIKE %:username%', {
-        username,
+      query = query.andWhere('customer.username LIKE :username', {
+        username: `%${username}%`,
       });
+
     if (login !== undefined)
-      query = query.andWhere('customer.login LIKE %:login%', {
-        login,
+      query = query.andWhere('customer.login LIKE :login', {
+        login: `%${login}%`,
       });
-    if (restricted !== undefined)
+
+    if (restricted !== undefined) {
+      if (typeof restricted !== 'boolean') {
+        res.status(422).send({ message: 'restricted invalide.' });
+        return;
+      }
       query = query.andWhere('customer.restricted = :restricted', {
         restricted,
       });
-    if (admin !== undefined)
+    }
+
+    if (admin !== undefined) {
+      if (typeof admin !== 'boolean') {
+        res.status(422).send({ message: 'admin invalide.' });
+        return;
+      }
       query = query.andWhere('customer.admin = :admin', {
         admin,
       });
-    if (pointsMin !== undefined)
+    }
+
+    if (pointsMin !== undefined) {
+      if (typeof pointsMin !== 'number' || isNaN(pointsMin)) {
+        res.status(422).send({ message: 'pointsMin invalide.' });
+        return;
+      }
+      if (pointsMin < 0) {
+        res.status(422).send({ message: 'pointsMin négatif.' });
+        return;
+      }
       query = query.andWhere('customer.points >= :pointsMin', {
         pointsMin,
       });
-    if (pointsMax !== undefined)
+    }
+
+    if (pointsMax !== undefined) {
+      if (typeof pointsMax !== 'number' || isNaN(pointsMax)) {
+        res.status(422).send({ message: 'pointsMax invalide.' });
+        return;
+      }
       query = query.andWhere('customer.points <= :pointsMax', {
-        pointsMax,
+        pointsMax: pointsMax,
       });
+    }
+
+    if (
+      typeof pointsMin === 'number' &&
+      typeof pointsMax === 'number' &&
+      pointsMax < pointsMin
+    ) {
+      res
+        .status(422)
+        .send({ message: 'Le minimum est plus grand que le maximum.' });
+      return;
+    }
 
     const customers = await query.getMany();
 
     res.status(200).json(customers);
   } catch (error) {
-    console.error(error);
+    if (!isTest) console.error(error);
     res.status(500).json({ message: 'Error finding users' });
-  }
-};
-
-const getUserInfo: RequestHandler = async (req, res) => {
-  const { id } = req.params;
-
-  if (!id || isNaN(Number(id))) {
-    res.status(400).json({ message: 'Invalid ID parameter' });
-    return;
-  }
-
-  try {
-    const user = await AppDataSource.getRepository(Customer).findOneBy({
-      id: parseInt(id),
-    });
-
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-
-    res.status(200).json(user);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching user info' });
   }
 };
 
