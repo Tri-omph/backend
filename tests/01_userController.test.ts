@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { hash } from 'bcrypt';
+import { hash, compare } from 'bcrypt';
 
 import app from '../src/app';
 import { Customer } from '../src/models/Customer';
@@ -361,10 +361,10 @@ describe('/users', () => {
     });
 
     describe('401 Unauthorized', () => {
-      it("401 si le mail n'existe pas", async () => {
-        const { email: email2 } = generateUser();
+      it("401 si le pseudonyme n'existe pas", async () => {
+        const { username: username2 } = generateUser();
         const response = await request(app).post('/api/v1/users/auth').send({
-          login: email2,
+          login: username2,
           password,
         });
         expect(response.status).toBe(401);
@@ -374,10 +374,10 @@ describe('/users', () => {
         );
       });
 
-      it("401 si le pseudonyme n'existe pas", async () => {
-        const { username: username2 } = generateUser();
+      it("401 si l'email n'existe pas", async () => {
+        const { email: email2 } = generateUser();
         const response = await request(app).post('/api/v1/users/auth').send({
-          login: username2,
+          login: email2,
           password,
         });
         expect(response.status).toBe(401);
@@ -514,23 +514,26 @@ describe('/users', () => {
 
     describe('PATCH /users/me', () => {
       let user: { username: string; password: string; email: string },
-        username: string,
-        username2: string,
-        email: string,
-        email2: string,
+        user2: { username: string; password: string; email: string },
         token: string,
-        id: number;
+        id: number,
+        /**
+         * Vérifie si le Customer et user ont le même id, pseudonyme, mail et mot de passe
+         */
+        checkUser: (c: Customer) => Promise<boolean>;
 
       beforeAll(async () => {
         user = generateUser();
-        username = user.username;
-        email = user.email;
         const custo1 = await generateCustomer(user);
 
-        const user2 = generateUser();
-        username2 = user2.username;
-        email2 = user2.email;
+        user2 = generateUser();
         const custo2 = await generateCustomer(user2);
+
+        checkUser = async (c: Customer) =>
+          c.username === user.username &&
+          c.login === user.password &&
+          (await compare(user.password, c.pwd_hash)) &&
+          c.id === id;
 
         if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
@@ -542,8 +545,8 @@ describe('/users', () => {
         await customerRepository.save(custo2);
 
         const userData = await customerRepository.findBy({
-          username,
-          login: email,
+          username: user.username,
+          login: user.email,
         });
         id = userData[0].id;
         token = generateJWT(id, userData[0].admin);
@@ -560,23 +563,25 @@ describe('/users', () => {
           expect(response.status).toBe(200);
           expect(response.body).toHaveProperty(
             'message',
-            'Les informations de l utilisateur ont été mises à jour avec succès.'
+            "Les informations de l'utilisateur ont été mises à jour avec succès."
           );
 
           const customerRepository = AppDataSource.getRepository(Customer);
-          const oldUserData = await customerRepository.findBy({ username });
+          const oldUserData = await customerRepository.findBy({
+            username: user.username,
+          });
           expect(oldUserData).toHaveLength(0);
 
-          username = newUsername;
+          user.username = newUsername;
           const userData = await customerRepository.findBy({
-            username,
-            login: email,
+            username: user.username,
+            login: user.email,
           });
           expect(userData).toHaveLength(1);
-          expect(userData[0].id).toBe(id);
+          expect(checkUser(userData[0])).toBeTruthy();
         });
 
-        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (mail)", async () => {
+        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (email)", async () => {
           const { email: newEmail } = generateUser();
           const response = await request(app)
             .patch('/api/v1/users/me')
@@ -586,137 +591,190 @@ describe('/users', () => {
           expect(response.status).toBe(200);
           expect(response.body).toHaveProperty(
             'message',
-            'Les informations de l utilisateur ont été mises à jour avec succès.'
+            "Les informations de l'utilisateur ont été mises à jour avec succès."
           );
 
           const customerRepository = AppDataSource.getRepository(Customer);
           const oldUserData = await customerRepository.findBy({
-            username,
-            login: email,
+            username: user.username,
+            login: user.email,
           });
           expect(oldUserData).toHaveLength(0);
 
-          email = newEmail;
+          user.email = newEmail;
           const userData = await customerRepository.findBy({
-            username,
-            login: email,
+            username: user.username,
+            login: user.email,
           });
           expect(userData).toHaveLength(1);
-          expect(userData[0].id).toBe(id);
+          expect(checkUser(userData[0])).toBeTruthy();
         });
 
-        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (username & mail)", async () => {
-          const { username: newUsername, email: newEmail } = generateUser();
+        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (mot de passe)", async () => {
+          const { password: newPassword } = generateUser();
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
-            .send({ username: newUsername, email: newEmail });
+            .send({ password: newPassword });
 
           expect(response.status).toBe(200);
           expect(response.body).toHaveProperty(
             'message',
-            'Les informations de l utilisateur ont été mises à jour avec succès.'
+            "Les informations de l'utilisateur ont été mises à jour avec succès."
+          );
+
+          const customerRepository = AppDataSource.getRepository(Customer);
+
+          user.password = newPassword;
+          const userData = await customerRepository.findBy({
+            username: user.username,
+            login: user.email,
+          });
+          expect(userData).toHaveLength(1);
+          expect(checkUser(userData[0])).toBeTruthy();
+        });
+
+        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (username, mail & mot de passe)", async () => {
+          const u = generateUser();
+          const {
+            username: newUsername,
+            email: newEmail,
+            password: newPassword,
+          } = u;
+          const response = await request(app)
+            .patch('/api/v1/users/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send(u);
+
+          expect(response.status).toBe(200);
+          expect(response.body).toHaveProperty(
+            'message',
+            "Les informations de l'utilisateur ont été mises à jour avec succès."
           );
 
           const customerRepository = AppDataSource.getRepository(Customer);
           const oldUserData = await customerRepository.findBy({
-            username,
-            login: email,
+            username: user.username,
+            login: user.email,
           });
           expect(oldUserData).toHaveLength(0);
-
-          username = newUsername;
-          email = newEmail;
+          user.username = newUsername;
+          user.email = newEmail;
+          user.password = newPassword;
           const userData = await customerRepository.findBy({
-            username,
-            login: email,
+            username: user.username,
+            login: user.email,
           });
           expect(userData).toHaveLength(1);
-          expect(userData[0].id).toBe(id);
+          expect(checkUser(userData[0])).toBeTruthy();
         });
 
-        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (username & ancien mail)", async () => {
+        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (username & ancien mail & ancien mot de passe)", async () => {
           const { username: newUsername } = generateUser();
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
-            .send({ username: newUsername, email });
+            .send({
+              username: newUsername,
+              email: user.email,
+              password: user.password,
+            });
 
           expect(response.status).toBe(200);
           expect(response.body).toHaveProperty(
             'message',
-            'Les informations de l utilisateur ont été mises à jour avec succès.'
+            "Les informations de l'utilisateur ont été mises à jour avec succès."
           );
 
           const customerRepository = AppDataSource.getRepository(Customer);
           const oldUserData = await customerRepository.findBy({
-            username,
-            login: email,
+            username: user.username,
+            login: user.email,
           });
           expect(oldUserData).toHaveLength(0);
 
-          username = newUsername;
+          user.username = newUsername;
           const userData = await customerRepository.findBy({
-            username,
-            login: email,
+            username: user.username,
+            login: user.email,
           });
           expect(userData).toHaveLength(1);
-          expect(userData[0].id).toBe(id);
+          expect(checkUser(userData[0])).toBeTruthy();
         });
 
-        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (ancien username & mail)", async () => {
+        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (ancien username & mail & ancien mot de passe)", async () => {
           const { email: newEmail } = generateUser();
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
-            .send({ username, email: newEmail });
+            .send({
+              username: user.username,
+              email: newEmail,
+              password: user.password,
+            });
 
           expect(response.status).toBe(200);
           expect(response.body).toHaveProperty(
             'message',
-            'Les informations de l utilisateur ont été mises à jour avec succès.'
+            "Les informations de l'utilisateur ont été mises à jour avec succès."
           );
 
           const customerRepository = AppDataSource.getRepository(Customer);
           const oldUserData = await customerRepository.findBy({
-            username,
-            login: email,
+            username: user.username,
+            login: user.email,
           });
           expect(oldUserData).toHaveLength(0);
 
-          email = newEmail;
+          user.email = newEmail;
           const userData = await customerRepository.findBy({
-            username,
-            login: email,
+            username: user.username,
+            login: user.email,
           });
           expect(userData).toHaveLength(1);
-          expect(userData[0].id).toBe(id);
+          expect(checkUser(userData[0])).toBeTruthy();
+        });
+
+        it("200 si l'entrée est valide, et que les données ont bien été mise à jour (ancien username & ancien mail & mot de passe)", async () => {
+          const { password: newPassword } = generateUser();
+          const response = await request(app)
+            .patch('/api/v1/users/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+              username: user.username,
+              email: user.email,
+              password: newPassword,
+            });
+
+          expect(response.status).toBe(200);
+          expect(response.body).toHaveProperty(
+            'message',
+            "Les informations de l'utilisateur ont été mises à jour avec succès."
+          );
+
+          const customerRepository = AppDataSource.getRepository(Customer);
+
+          user.password = newPassword;
+          const userData = await customerRepository.findBy({
+            username: user.username,
+            login: user.email,
+          });
+          expect(userData).toHaveLength(1);
+          expect(checkUser(userData[0])).toBeTruthy();
         });
       });
 
-      describe('400 Bad Request', () => {
-        it("400 aucun paramètre n'est fourni", async () => {
-          const response = await request(app)
-            .patch('/api/v1/users/me')
-            .set('Authorization', `Bearer ${token}`)
-            .send({});
+      it("400 aucun paramètre n'est fourni", async () => {
+        const response = await request(app)
+          .patch('/api/v1/users/me')
+          .set('Authorization', `Bearer ${token}`)
+          .send({});
 
-          expect(response.status).toBe(400);
-          expect(response.body).toHaveProperty(
-            'message',
-            'Aucune modification indiquée.'
-          );
-        });
-
-        it("400 si le nom d'utilisateur est vide", async () => {
-          const response = await request(app)
-            .patch('/api/v1/users/me')
-            .set('Authorization', `Bearer ${token}`)
-            .send({ username: '' });
-
-          expect(response.status).toBe(400);
-          expect(response.body).toHaveProperty('message');
-        });
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty(
+          'message',
+          'Aucune modification indiquée.'
+        );
       });
 
       describe('401 Unauthorized', () => {
@@ -767,7 +825,7 @@ describe('/users', () => {
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
-            .send({ email: email2 });
+            .send({ email: user2.email });
 
           expect(response.status).toBe(409);
           expect(response.body).toHaveProperty(
@@ -780,7 +838,7 @@ describe('/users', () => {
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
-            .send({ username: username2 });
+            .send({ username: user2.username });
 
           expect(response.status).toBe(409);
           expect(response.body).toHaveProperty(
@@ -793,7 +851,7 @@ describe('/users', () => {
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
-            .send({ email: email2, username: username2 });
+            .send({ email: user2.email, username: user2.username });
 
           expect(response.status).toBe(409);
           expect(response.body).toHaveProperty('message');
@@ -804,7 +862,7 @@ describe('/users', () => {
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
-            .send({ email: email2, username: newUsername });
+            .send({ email: user2.email, username: newUsername });
 
           expect(response.status).toBe(409);
           expect(response.body).toHaveProperty(
@@ -818,7 +876,7 @@ describe('/users', () => {
           const response = await request(app)
             .patch('/api/v1/users/me')
             .set('Authorization', `Bearer ${token}`)
-            .send({ username: username2, email: newEmail });
+            .send({ username: user2.username, email: newEmail });
 
           expect(response.status).toBe(409);
           expect(response.body).toHaveProperty(
@@ -839,6 +897,21 @@ describe('/users', () => {
           expect(response.body).toHaveProperty(
             'message',
             'Adresse email invalide.'
+          );
+        });
+
+        it('422 si le pseudonyme est invalide', async () => {
+          const response = await request(app)
+            .patch('/api/v1/users/me')
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+              username: "ceci n'est pas un nom d'utilisateur valide &&",
+            });
+
+          expect(response.status).toBe(422);
+          expect(response.body).toHaveProperty(
+            'message',
+            'Pseudonyme invalide.'
           );
         });
 

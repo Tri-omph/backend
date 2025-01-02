@@ -26,14 +26,18 @@
 
   - POST /users/auth
     - 200 OK
-      - 200 si l'entrée est valide, devrait renvoyer un token (utilisateur)
-      - 200 si l'entrée est valide, devrait renvoyer un token (mainadmin)
+      - 200 si l'entrée est valide, devrait renvoyer un token (utilisateur, pseudonyme)
+      - 200 si l'entrée est valide, devrait renvoyer un token (utilisateur, email)
+      - 200 si l'entrée est valide, devrait renvoyer un token (mainadmin, pseudonyme)
+      - 200 si l'entrée est valide, devrait renvoyer un token (mainadmin, email)
     - 400 Bad Request
-      - 400 s'il manque le pseudonyme
+      - 400 s'il manque le login
       - 400 s'il manque le mot de passe
     - 401 Unauthorized
       - 401 si le pseudonyme n'existe pas
+      - 401 si l'email n'existe pas
       - 401 si le couple pseudonyme-mdp est faux
+      - 401 si le couple email-mdp est faux
 
   - /users/me
     - GET /users/me
@@ -49,12 +53,11 @@
       - 200 OK
         - 200 si l'entrée est valide, et que les données ont bien été mise à jour (username)
         - 200 si l'entrée est valide, et que les données ont bien été mise à jour (mail)
-        - 200 si l'entrée est valide, et que les données ont bien été mise à jour (username & mail)
+        - 200 si l'entrée est valide, et que les données ont bien été mise à jour (mot de passe)
+        - 200 si l'entrée est valide, et que les données ont bien été mise à jour (username, mail & mot de passe)
         - 200 si l'entrée est valide, et que les données ont bien été mise à jour (username & ancien mail)
         - 200 si l'entrée est valide, et que les données ont bien été mise à jour (ancien username & mail)
-      - 400 Bad Request
-        - 400 aucun paramètre n'est fourni
-        - 400 si le nom d'utilisateur est vide
+      - 400 aucun paramètre n'est fourni
       - 401 Unauthorized
         - 401 s'il manque le token
         - 401 si le token est invalide
@@ -67,6 +70,7 @@
         - 409 si le pseudonyme est déjà pris, malgré un mail valide
       - 422 Unprocessable Entity
         - 422 si le mail est invalide
+        - 422 si le pseudonyme est invalide
         - 422 si le mot de passe fait moins de 8 caractères
         - 422 si le mot de passe n'as pas de chiffre
         - 422 si le mot de passe n'as pas de majuscule

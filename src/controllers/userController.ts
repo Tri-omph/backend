@@ -185,7 +185,7 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
 
     if (username && username !== customer.username) {
       if (!usernameRegex.test(username)) {
-        res.status(400).json({ message: 'Le pseudonyme est invalide.' });
+        res.status(422).json({ message: 'Pseudonyme invalide.' });
         return;
       }
 
@@ -234,7 +234,7 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
 
     res.status(200).json({
       message:
-        'Les informations de l utilisateur ont été mises à jour avec succès.',
+        "Les informations de l'utilisateur ont été mises à jour avec succès.",
     });
   } catch (err) {
     if (!isTest) console.error('Erreur lors de la MAJ de l utilisateur:', err);
