@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { Customer } from '../models/Customer';
+import { ScanHistory } from '../models/ScanHistory';
 
 export const AppDataSource = new DataSource({
   type: 'mysql',
@@ -10,7 +11,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME ?? 'tri_omph',
   synchronize: true,
   logging: true,
-  entities: [Customer],
+  entities: [Customer, ScanHistory],
   migrations: ['src/database/migrations/*.ts'],
   driver: require('mysql2'),
 });
