@@ -14,7 +14,7 @@ describe('Database Seeding', () => {
     const customerRepository = AppDataSource.getRepository(Customer);
 
     const admin = await customerRepository.findOneBy({
-      login: 'admin@example.com',
+      login: process.env.MAIN_ADMIN_EMAIL ?? 'admin@example.com',
     });
 
     expect(admin).not.toBeNull();
@@ -36,7 +36,7 @@ describe('Database Seeding', () => {
     await seedDatabase(AppDataSource);
 
     const admins = await customerRepository.find({
-      where: { login: 'admin@example.com' },
+      where: { login: process.env.MAIN_ADMIN_EMAIL ?? 'admin@example.com' },
     });
     expect(admins).toHaveLength(1);
   });

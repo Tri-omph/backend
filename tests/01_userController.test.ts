@@ -30,8 +30,15 @@ const generateCustomer = async (user: {
   };
 };
 
-const mainadminCreds = {
-  username: 'mainadmin',
+// De quoi se connecter au main admin, avec pseudonyme
+const mainadminCredsU = {
+  login: 'mainadmin',
+  password: process.env.MAIN_ADMIN_PWD ?? 'mot_de_passe_pas_sécurisé_du_tout',
+};
+
+// De quoi se connecter au main admin, avec email
+const mainadminCredsE = {
+  login: process.env.MAIN_ADMIN_EMAIL ?? 'admin@example.com',
   password: process.env.MAIN_ADMIN_PWD ?? 'mot_de_passe_pas_sécurisé_du_tout',
 };
 
@@ -253,15 +260,19 @@ describe('/users', () => {
   describe('POST /users/auth', () => {
     let u: { username: string; password: string; email: string },
       username: string,
+      email: string,
       password: string,
-      user: { username: string; password: string };
+      userU: { login: string; password: string },
+      userE: { login: string; password: string };
 
     beforeAll(async () => {
       u = generateUser();
       const customer = await generateCustomer(u);
       username = u.username;
+      email = u.email;
       password = u.password;
-      user = { username, password };
+      userU = { login: username, password };
+      userE = { login: email, password };
 
       if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
@@ -273,20 +284,40 @@ describe('/users', () => {
     });
 
     describe('200 OK', () => {
-      it("200 si l'entrée est valide, devrait renvoyer un token (utilisateur)", async () => {
+      it("200 si l'entrée est valide, devrait renvoyer un token (utilisateur, pseudonyme)", async () => {
         const response = await request(app)
           .post('/api/v1/users/auth')
-          .send(user);
+          .send(userU);
 
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('token');
         expect(typeof response.body.token).toBe('string');
       });
 
-      it("200 si l'entrée est valide, devrait renvoyer un token (mainadmin)", async () => {
+      it("200 si l'entrée est valide, devrait renvoyer un token (utilisateur, email)", async () => {
         const response = await request(app)
           .post('/api/v1/users/auth')
-          .send(mainadminCreds);
+          .send(userE);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('token');
+        expect(typeof response.body.token).toBe('string');
+      });
+
+      it("200 si l'entrée est valide, devrait renvoyer un token (mainadmin, pseudonyme)", async () => {
+        const response = await request(app)
+          .post('/api/v1/users/auth')
+          .send(mainadminCredsU);
+
+        expect(response.status).toBe(200);
+        expect(response.body).toHaveProperty('token');
+        expect(typeof response.body.token).toBe('string');
+      });
+
+      it("200 si l'entrée est valide, devrait renvoyer un token (mainadmin, email)", async () => {
+        const response = await request(app)
+          .post('/api/v1/users/auth')
+          .send(mainadminCredsE);
 
         expect(response.status).toBe(200);
         expect(response.body).toHaveProperty('token');
@@ -295,51 +326,86 @@ describe('/users', () => {
     });
 
     describe('400 Bad Request', () => {
-      it("400 s'il manque le pseudonyme", async () => {
+      it("400 s'il manque le login", async () => {
         const response = await request(app)
           .post('/api/v1/users/auth')
           .send({ password });
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty(
           'message',
-          'Pseudonyme et mot de passe requis.'
+          'Identifiant et mot de passe requis.'
         );
       });
 
-      it("400 s'il manque le mot de passe", async () => {
+      it("400 s'il manque le mot de passe (pseudonyme)", async () => {
         const response = await request(app)
           .post('/api/v1/users/auth')
-          .send({ username });
+          .send({ login: username });
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty(
           'message',
-          'Pseudonyme et mot de passe requis.'
+          'Identifiant et mot de passe requis.'
+        );
+      });
+
+      it("400 s'il manque le mot de passe (email)", async () => {
+        const response = await request(app)
+          .post('/api/v1/users/auth')
+          .send({ login: email });
+        expect(response.status).toBe(400);
+        expect(response.body).toHaveProperty(
+          'message',
+          'Identifiant et mot de passe requis.'
         );
       });
     });
 
     describe('401 Unauthorized', () => {
-      it("401 si le pseudonyme n'existe pas", async () => {
+      it("401 si le mail n'existe pas", async () => {
+        const { email: email2 } = generateUser();
         const response = await request(app).post('/api/v1/users/auth').send({
-          username:
-            'thisUsernameAbsolutelyCannotExistInThisDatabaseOtherwiseICry',
+          login: email2,
           password,
         });
         expect(response.status).toBe(401);
         expect(response.body).toHaveProperty(
           'message',
-          'Pseudonyme incorrect.'
+          'Identifiants incorrect.'
+        );
+      });
+
+      it("401 si le pseudonyme n'existe pas", async () => {
+        const { username: username2 } = generateUser();
+        const response = await request(app).post('/api/v1/users/auth').send({
+          login: username2,
+          password,
+        });
+        expect(response.status).toBe(401);
+        expect(response.body).toHaveProperty(
+          'message',
+          'Identifiants incorrect.'
         );
       });
 
       it('401 si le couple pseudonyme-mdp est faux', async () => {
         const response = await request(app)
           .post('/api/v1/users/auth')
-          .send({ username, password: 'wrongPassword' });
+          .send({ login: username, password: 'wrongPassword' });
         expect(response.status).toBe(401);
         expect(response.body).toHaveProperty(
           'message',
-          'Mot de passe incorrect.'
+          'Identifiants incorrect.'
+        );
+      });
+
+      it('401 si le couple email-mdp est faux', async () => {
+        const response = await request(app)
+          .post('/api/v1/users/auth')
+          .send({ login: email, password: 'wrongPassword' });
+        expect(response.status).toBe(401);
+        expect(response.body).toHaveProperty(
+          'message',
+          'Identifiants incorrect.'
         );
       });
     });
@@ -399,8 +465,11 @@ describe('/users', () => {
           expect(response.status).toBe(200);
           expect(response.body).toHaveProperty('id');
           expect(response.body.id).not.toBeNaN();
-          expect(response.body).toHaveProperty('username', 'mainadmin');
-          expect(response.body).toHaveProperty('login', 'admin@example.com');
+          expect(response.body).toHaveProperty(
+            'username',
+            mainadminCredsU.login
+          );
+          expect(response.body).toHaveProperty('login', mainadminCredsE.login);
           expect(response.body).toHaveProperty('pwd_hash');
           expect(response.body).toHaveProperty('restricted');
           expect(response.body.restricted).toBeFalsy();

@@ -88,27 +88,29 @@ const createUser: RequestHandler = async (req, res) => {
  * Fonction pour connecter un utilisateur
  */
 const loginUser: RequestHandler = async (req, res) => {
-  const { username, password } = req.body;
+  const { login, password } = req.body;
 
-  if (!username || !password) {
-    res.status(400).json({ message: 'Pseudonyme et mot de passe requis.' });
+  if (!login || !password) {
+    res.status(400).json({ message: 'Identifiant et mot de passe requis.' });
     return;
   }
-
   const customerRepository = AppDataSource.getRepository(Customer);
 
   try {
-    const customer = await customerRepository.findOneBy({ username: username });
+    let customer: Customer | null;
+    if (verifyEmail(login))
+      customer = await customerRepository.findOneBy({ login: login });
+    else customer = await customerRepository.findOneBy({ username: login });
 
     if (!customer) {
-      res.status(401).json({ error: true, message: 'Pseudonyme incorrect.' });
+      res.status(401).json({ error: true, message: 'Identifiants incorrect.' });
       return;
     }
 
     const validPassword = await bcrypt.compare(password, customer.pwd_hash);
 
     if (!validPassword) {
-      res.status(401).json({ error: true, message: 'Mot de passe incorrect.' });
+      res.status(401).json({ error: true, message: 'Identifiants incorrect.' });
       return;
     }
 
@@ -235,6 +237,9 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
   }
 };
 
+/**
+ * Fonction pour obtenir les information d'un utilisateur par id, pour les admins seulement
+ */
 const getUserInfo: RequestHandler = async (req, res) => {
   const { id } = req.params;
   if (!id || id === '') {

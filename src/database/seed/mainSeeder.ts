@@ -6,7 +6,7 @@ import { Customer } from '../../models/Customer';
 const seedDatabase = async (dataSource: DataSource) => {
   const customerRepository = dataSource.getRepository(Customer);
 
-  const login = 'admin@example.com';
+  const login = process.env.MAIN_ADMIN_EMAIL ?? 'admin@example.com';
 
   const existingAdmin = await customerRepository.findOneBy({ login });
 
