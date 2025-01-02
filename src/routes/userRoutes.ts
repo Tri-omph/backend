@@ -4,6 +4,7 @@ import userController from '../controllers/userController';
 import historyController from '../controllers/historyController';
 import { authMiddleware } from '../middlewares/authenticate';
 import { adminMiddleware } from '../middlewares/authenticateAdmin';
+import { rateLimiter } from '../middlewares/rateLimiter';
 
 // Ce fichier définit les routes de l'application. Il est responsable de gérer les chemins d'URL
 // qui pointent vers des actions spécifiques dans le contrôleur. Ici, nous avons les routes liées aux utilisateurs,
@@ -12,15 +13,28 @@ import { adminMiddleware } from '../middlewares/authenticateAdmin';
 
 const router = Router();
 
-router.post('/', userController.createUser); // POST /api/v1/users //POST /users
-router.post('/auth', userController.loginUser); //POST /api/v1/auth
+const SECONDE = 1000;
+const MINUTE = 60 * SECONDE;
+const HEURE = 60 * MINUTE;
+
+router.post('/', rateLimiter(5, HEURE), userController.createUser); // POST /api/v1/users //POST /users
+router.post('/auth', rateLimiter(2, 3 * MINUTE), userController.loginUser); //POST /api/v1/auth
 
 router.use(authMiddleware);
 
-router.get('/me', userController.getCurrentUser); // GET /api/v1/users/me
-router.patch('/me', userController.updateCurrentUser); // PATCH /api/v1/users/me
-router.get('/history/me', historyController.getCurrentHistory); // GET /api/v1/users/history/me
-router.post('/history/me', historyController.addCurrentHistory); // POST /api/v1/users/history/me
+router.get('/me', rateLimiter(20, MINUTE), userController.getCurrentUser); // GET /api/v1/users/me
+router.patch('/me', rateLimiter(5, HEURE), userController.updateCurrentUser); // PATCH /api/v1/users/me
+
+router.get(
+  '/history/me',
+  rateLimiter(10, MINUTE),
+  historyController.getCurrentHistory
+); // GET /api/v1/users/history/me
+router.post(
+  '/history/me',
+  rateLimiter(10, MINUTE),
+  historyController.addCurrentHistory
+); // POST /api/v1/users/history/me
 
 router.use(adminMiddleware);
 
