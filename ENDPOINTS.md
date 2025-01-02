@@ -58,13 +58,19 @@ Crée un nouveau compte utilisateur, vérifie l'unicité du nom d'utilisateur et
 
 #### Description :
 
-Authentifie un utilisateur en vérifiant son nom d'utilisateur et son mot de passe, et renvoie un token JWT.
+Authentifie un utilisateur en vérifiant son nom d'utilisateur ou adresse mail et son mot de passe, et renvoie un token JWT.
 
 #### Corps de la requête :
 
 ```json
 {
-  "username": "exampleUser",
+  "login": "exampleUser",
+  "password": "examplePassword"
+}
+```
+```json
+{
+  "login": "user@example.com",
   "password": "examplePassword"
 }
 ```
@@ -77,6 +83,7 @@ Authentifie un utilisateur en vérifiant son nom d'utilisateur et son mot de pas
     "token": "your-jwt-token"
   }
   ```
+- **400 Bad Request** : Entrée invalide.
 - **401 Unauthorized** : Nom d'utilisateur ou mot de passe incorrect.
 - **429 Too Many Requests** : Vous avez dépassé la limite de requêtes. Veuillez réessayer plus tard.
 
@@ -135,6 +142,7 @@ Met à jour le profil de l'utilisateur actuel, par exemple son email ou son nom 
 - **400 Bad Request** : Entrée invalide.
 - **401 Unauthorized** : Token JWT invalide ou manquant.
 - **409 Conflict** : Email et/ou pseudonyme déjà pris.
+- **422 Unprocessable Entity** : Email, pseudonyme et/ou mot de passe invalide.
 
 ---
 
@@ -206,7 +214,6 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
     }
   ]
   ```
-- **400 Bad Request** : Requête malformée.
 - **401 Unauthorized** : Token JWT invalide ou expiré.
 - **403 Forbidden** : Token JWT avec droits insuffisants.
 - **422 Unprocessable Entity** : Erreur de formatage des entrées.
