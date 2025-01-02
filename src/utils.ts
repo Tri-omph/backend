@@ -30,6 +30,8 @@ export const emailRegex =
 export const verifyEmail = (email: string): boolean =>
   email.length < 255 && emailRegex.test(email);
 
+export const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,30}$/;
+
 /**
  * Vérifie si un string respecte les contraintes d'un mot de passe :
  * - Contient au moins une minuscule (?=.*[a-z])

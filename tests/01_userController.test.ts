@@ -183,16 +183,16 @@ describe('/users', () => {
         );
       });
 
-      it('422 si le pseudonyme est vide', async () => {
+      it('422 si le pseudonyme est invalide', async () => {
         const response = await request(app)
           .post('/api/v1/users')
-          .send({ ...generateUser(), username: '' });
+          .send({
+            ...generateUser(),
+            username: "j'ai des caractères invalides",
+          });
 
         expect(response.status).toBe(422);
-        expect(response.body).toHaveProperty(
-          'message',
-          'Tous les champs sont requis.'
-        );
+        expect(response.body).toHaveProperty('message', 'Pseudonyme invalide.');
       });
 
       it('422 si le mot de passe fait moins de 8 caractères', async () => {

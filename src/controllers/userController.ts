@@ -4,7 +4,12 @@ import bcrypt from 'bcrypt';
 import { AppDataSource } from '../database/data-source';
 import { Customer } from '../models/Customer';
 import { isTest } from '../app';
-import { generateJWT, passwordRegex, verifyEmail } from '../utils';
+import {
+  generateJWT,
+  passwordRegex,
+  usernameRegex,
+  verifyEmail,
+} from '../utils';
 
 // Ce fichier contient les fonctions de contrôleur pour gérer les actions liées aux utilisateurs.
 // Les fonctions sont appelées depuis les routes définies dans `index.ts`. Chaque fonction
@@ -16,9 +21,9 @@ import { generateJWT, passwordRegex, verifyEmail } from '../utils';
 const createUser: RequestHandler = async (req, res) => {
   const { username, password, email } = req.body;
 
-  if (username === '') {
+  if (!usernameRegex.test(username)) {
     res.status(422).json({
-      message: 'Tous les champs sont requis.',
+      message: 'Pseudonyme invalide.',
     });
     return;
   }
@@ -179,8 +184,8 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
     }
 
     if (username && username !== customer.username) {
-      if (username.length === 0) {
-        res.status(400).json({ message: 'Le pseudonyme est vide.' });
+      if (!usernameRegex.test(username)) {
+        res.status(400).json({ message: 'Le pseudonyme est invalide.' });
         return;
       }
 
