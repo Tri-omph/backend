@@ -30,7 +30,13 @@ export const emailRegex =
 export const verifyEmail = (email: string): boolean =>
   email.length < 255 && emailRegex.test(email);
 
-export const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,30}$/;
+/**
+ * Vérifie si un string respecte les contraintes d'un pseudonyme :
+ * - Commence par une lettre [a-zA-Z]
+ * - Ne contient que des lettres, chiffres, tirets et underscores [a-zA-Z0-9_-]
+ * - Fais entre 3 et 30 caractères (le caractère de départ + ) {2,29}
+ */
+export const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_-]{2,29}$/;
 
 /**
  * Vérifie si un string respecte les contraintes d'un mot de passe :

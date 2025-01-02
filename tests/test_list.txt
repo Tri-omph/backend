@@ -17,7 +17,7 @@
       - 409 si le pseudonyme est déjà utilisé
     - 422 Unprocessable Entity
       - 422 si le mail est mal formaté
-      - 422 si le pseudonyme est vide
+      - 422 si le pseudonyme est invalide
       - 422 si le mot de passe fait moins de 8 caractères
       - 422 si le mot de passe n'a pas de chiffre
       - 422 si le mot de passe n'a pas de majuscule
