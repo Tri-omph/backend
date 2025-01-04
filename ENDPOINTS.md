@@ -234,19 +234,28 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
 
 #### Description :
 
-Accepte un code-barres et renvoie le résultat de la reconnaissance. **TODO: Voir avec le frontend**
+Accepte un code-barres et renvoie le résultat de la reconnaissance.
 
 #### Corps de la requête :
 
 ```json
-{}
+{
+  "barcode": "12345678910"
+}
 ```
 
 #### Réponses :
 
 - **200 OK** : Scan traité avec succès, renvoie les résultats de la reconnaissance.
   ```json
-  {}
+  {
+    "code": "12345678910",
+    "product":,
+        "_id": "12345678910",
+        "brands": "ExampleBrand",
+        "packaging": "ExampleComposition",
+    ...
+  }
   ```
 - **400 Bad Request** : Données de scan invalides.
   ```json
@@ -255,7 +264,16 @@ Accepte un code-barres et renvoie le résultat de la reconnaissance. **TODO: Voi
     "message": "Données de scan invalides."
   }
   ```
+- **404 Not Found** : Produit non trouvé
+  ```json
+  {
+    "error": true,
+    "message": "Produit non trouvé dans la base de données Open Food Facts."
+  }
+  ```
+
 - **429 Too Many Requests** : Vous avez dépassé la limite de requêtes. Veuillez réessayer plus tard.
+- **500 Internal Server Error** : Erreur interne du serveur.
 
 ---
 
@@ -470,6 +488,97 @@ Lever les restrictions imposées à un utilisateur avec l'ID indiqué.
 - **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
 - **404 Not Found** : Utilisateur introuvable.
 - **409 Conflict** : Utilisateur non restreint.
+
+---
+
+---
+
+### PATCH /game/points
+
+#### Description :
+
+Incrémenter les points de l'utilisateur lors de sa validation du scan
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Corps de la requête :
+
+```json
+{
+  "points": "5",
+}
+```
+
+#### Réponses :
+
+- **200 OK** : Incrémentation des points réussie
+
+```json
+{
+  "points": "6",
+}
+```
+- **401 Unauthorized** : Token JWT invalide.
+  ```json
+  {
+    "error": true,
+    "message": "Token JWT invalide"
+  }
+  ```
+- **400 Bad Request** : Données invalides.
+  ```json
+  {
+    "error": true,
+    "message": "Données invalides"
+  }
+  ```
+- **404 Not Found** : Utilisateur introuvable.
+  ```json
+  {
+    "error": true,
+    "message": "Client introuvable"
+  }
+  ```
+- **500 Internal Server Error** : Erreur interne du serveur.
+
+---
+
+### GET /game/points
+
+#### Description :
+
+Récupérer les points de l'utilisateur
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : Récupération des points réussie
+
+```json
+{
+  "points": "5",
+}
+```
+- **401 Unauthorized** : Token JWT invalide.
+  ```json
+  {
+    "error": true,
+    "message": "Token JWT invalide"
+  }
+  ```
+- **404 Not Found** : Utilisateur introuvable.
+  ```json
+  {
+    "error": true,
+    "message": "Client introuvable"
+  }
+  ```
+- **500 Internal Server Error** : Erreur interne du serveur.
 
 ---
 

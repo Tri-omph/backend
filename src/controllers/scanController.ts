@@ -13,6 +13,14 @@ const processBarcodeScan = async (req: Request, res: Response) => {
   try {
     const result = await recognizeBarcode(barcodeData);
 
+    if (result.error) {
+      res.status(404).json({
+        error: true,
+        message: 'Produit non trouvé dans la base de données Open Food Facts.',
+      });
+      return;
+    }
+
     res.status(200).json(result);
   } catch (error) {
     console.error('Erreur de traitement du scan barcode:', error);
@@ -23,14 +31,26 @@ const processBarcodeScan = async (req: Request, res: Response) => {
 };
 
 const recognizeBarcode = async (barcodeData: string) => {
-  //Exemple
-  return {
-    barcode: barcodeData,
-    productName: 'Example Product',
-    price: 19.99,
-  };
+  const apiUrl = `https://world.openfoodfacts.org/api/v0/product/${barcodeData}.json`;
 
-  //TODO look for the code in the database
+  try {
+    const response = await fetch(apiUrl);
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.status === 1) {
+      return data.product;
+    } else {
+      return { error: true, message: 'Produit non trouvé.' };
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération des données de l\'API:', error);
+    throw new Error('Impossible de récupérer les données du produit.');
+  }
 };
 
 const processImageScan = async (req: Request, res: Response) => {
