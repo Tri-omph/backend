@@ -564,6 +564,7 @@ Récupérer les points de l'utilisateur
   "points": "5",
 }
 ```
+
 - **401 Unauthorized** : Token JWT invalide.
   ```json
   {
