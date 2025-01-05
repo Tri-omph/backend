@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node ./dist/app.js",
     "build": "tsc",
-    "test": "jest --passWithNoTests",
+    "test": "jest --detectOpenHandles",
     "lint": "eslint \"**/*.{js,ts}\"",
     "lint:fix": "eslint \"**/*.{js,ts}\" --fix",
     "format": "prettier --write \"**/*.{js,ts,json,md}\"",
@@ -30,6 +30,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.10.0",
+    "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.57.1",
@@ -40,6 +41,7 @@
     "lint-staged": "^15.2.10",
     "openapi-typescript": "^7.4.3",
     "prettier": "^3.4.1",
+    "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
     "typescript": "~5.5.0"
   },
@@ -64,6 +66,7 @@
     "morgan": "^1.10.0",
     "mysql2": "^3.11.5",
     "reflect-metadata": "^0.2.2",
+    "sqlite3": "^5.1.7",
     "triomph-backend": "file:",
     "typeorm": "^0.3.20"
   },

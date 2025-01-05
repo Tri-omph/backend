@@ -6,7 +6,7 @@ import { Customer } from '../../models/Customer';
 const seedDatabase = async (dataSource: DataSource) => {
   const customerRepository = dataSource.getRepository(Customer);
 
-  const login = 'admin@example.com';
+  const login = process.env.MAIN_ADMIN_EMAIL ?? 'admin@example.com';
 
   const existingAdmin = await customerRepository.findOneBy({ login });
 
@@ -27,7 +27,7 @@ const seedDatabase = async (dataSource: DataSource) => {
     const admin = customerRepository.create(mainAdmin);
     await customerRepository.save(admin);
 
-    console.log('mainadmin user created.');
+    if (process.env.NODE_ENV !== 'test') console.log('mainadmin user created.');
   }
 };
 
