@@ -1,36 +1,32 @@
-name: Node.js CI-CD
+name: Node.js CI
 
 on:
   push:
-    branches: ['*']  # Trigger on all branches
+    branches: ['*'] # Trigger on all branches
 
 jobs:
-  setup:
+  build:
     runs-on: ubuntu-latest
-    outputs:
-      env-ready: ${{ steps.setup-env.outputs.env-ready }}
+    strategy:
+      matrix:
+        node-version: [18.x]
+
     steps:
       - uses: actions/checkout@v2
 
-      # Setup Node.js
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 18.x
-
-      # Copy default.env to .env
+      # Copying the environment variables
       - name: Copy default.env to .env
         run: cp default.env .env
+
+      # Setup Node.js
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
 
       # Install dependencies
       - name: Install dependencies
         run: npm install
-
-  lint:
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - uses: actions/checkout@v2
 
       # Linting check
       - name: Run ESLint
@@ -39,12 +35,6 @@ jobs:
       # Prettier check
       - name: Check formatting with Prettier
         run: npm run format:check
-
-  test:
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - uses: actions/checkout@v2
 
       # Run tests
       - name: Run Jest tests
