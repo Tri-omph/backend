@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const DefaultSequencer = require('@jest/test-sequencer').default;
 
 class LexicographicSequencer extends DefaultSequencer {
