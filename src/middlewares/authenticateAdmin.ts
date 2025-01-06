@@ -9,14 +9,14 @@ import { RequestHandler } from 'express';
  *      router.use(adminMiddleware);
  *      router.post(...)
  */
-export const adminMiddleware: RequestHandler = (req, res, next) => {
+export const adminMiddleware: RequestHandler = (_req, res, next) => {
   if (!res.locals.user) {
-    res.status(401).json({ message: 'Authentication required' });
+    res.status(401).json({ message: 'Authentification requise.' });
     return;
   }
 
   if (!res.locals.user.admin) {
-    res.status(401).json({ message: 'Admin privileges required' });
+    res.status(403).json({ message: 'Droits insuffisants.' });
     return;
   }
 

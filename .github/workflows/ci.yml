@@ -2,7 +2,7 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ main ]
+    branches: ['*']  # Trigger on all branches
 
 jobs:
   build:
@@ -13,11 +13,25 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
+
+      # Setup Node.js
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
+
+      # Install dependencies
       - name: Install dependencies
         run: npm install
-      - name: Run tests
+
+      # Linting check
+      - name: Run ESLint
+        run: npm run lint
+
+      # Prettier check
+      - name: Check formatting with Prettier
+        run: npm run format:check
+
+      # Run tests
+      - name: Run Jest tests
         run: npm test
