@@ -68,6 +68,7 @@ Authentifie un utilisateur en vérifiant son nom d'utilisateur ou adresse mail e
   "password": "examplePassword"
 }
 ```
+
 ```json
 {
   "login": "user@example.com",

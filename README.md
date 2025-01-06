@@ -110,15 +110,18 @@ Ce projet est une collaboration entre les membres de notre groupe dans le cadre 
    Consultez notre outil de gestion des tâches ou les discussions de groupe pour voir les tâches qui vous sont attribuées.
 
 2. **Respecter les Standards de Code** :
+
    - Suivez les configurations ESLint et Prettier fournies dans le dépôt.
    - Assurez-vous que votre code est typé et cohérent avec la structure existante.
    - Rédigez des messages de commit clairs et précis pour décrire vos modifications.
 
 3. **Utiliser un Workflow par Branches** :
+
    - Créez une nouvelle branche pour vos travaux. Utilisez des noms descriptifs comme `feat/<nom-tâche>` ou `fix/<nom-bug>`.
    - Évitez de committer directement sur la branche principale (`main`).
 
 4. **Tester votre Code** :
+
    - Écrivez des tests pour chaque nouvelle fonctionnalité ou correction de bug que vous implémentez.
    - Lancez tous les tests localement avant de soumettre vos modifications :
      ```bash
@@ -126,6 +129,7 @@ Ce projet est une collaboration entre les membres de notre groupe dans le cadre 
      ```
 
 5. **Processus de Revue de Code** :
+
    - Poussez votre branche et créez une _pull request_ (PR) vers la branche `main`.
    - Attendez l’approbation d’au moins un autre membre de l’équipe avant de fusionner votre PR.
 
