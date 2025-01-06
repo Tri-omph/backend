@@ -2,7 +2,7 @@ name: Node.js CI
 
 on:
   push:
-    branches: ['*']  # Trigger on all branches
+    branches: ['*'] # Trigger on all branches
 
 jobs:
   build:
@@ -10,9 +10,13 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
-    
+
     steps:
       - uses: actions/checkout@v2
+
+      # Copying the environment variables
+      - name: Copy default.env to .env
+        run: cp default.env .env
 
       # Setup Node.js
       - name: Use Node.js ${{ matrix.node-version }}
