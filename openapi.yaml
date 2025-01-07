@@ -139,8 +139,6 @@ paths:
                     type: string
                   points:
                     type: integer
-                  gametype:
-                    type: string
                   restricted:
                     type: boolean
                   admin:
@@ -167,8 +165,6 @@ paths:
                   type: integer
                 pointsMax:
                   type: integer
-                gametype:
-                  type: string
                 login:
                   type: string
                 restricted:
@@ -191,8 +187,6 @@ paths:
                       type: string
                     points:
                       type: integer
-                    gametype:
-                      type: string
                     restricted:
                       type: boolean
                     admin:
