@@ -183,7 +183,6 @@ interface UserFilter {
   username: string;
   pointsMin: number;
   pointsMax: number;
-  gametype: string;
   login: string;
   restricted: boolean;
   admin: boolean;
@@ -195,7 +194,6 @@ const findUser: RequestHandler = async (req, res) => {
     username,
     pointsMin,
     pointsMax,
-    gametype,
     login,
     restricted,
     admin,
@@ -230,10 +228,6 @@ const findUser: RequestHandler = async (req, res) => {
     if (pointsMax !== undefined)
       query = query.andWhere('customer.points <= :pointsMax', {
         pointsMax,
-      });
-    if (gametype !== undefined)
-      query = query.andWhere('customer.gameType = :gametype', {
-        gametype,
       });
 
     const customers = await query.getMany();

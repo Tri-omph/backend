@@ -1,9 +1,3 @@
-export enum GameType {
-  PODIUM = 'PODIUM',
-  MONSTER = 'MONSTER',
-  EXPERIENCE = 'EXPERIENCE',
-}
-
 export enum TypeDisposable {
   PLASTIC_PACKAGING = 'PLASTIC PACKAGING',
   CARDBOARD_PACKAGING = 'CARDBOARD PACKAGING',
@@ -21,3 +15,18 @@ export enum TypeDisposable {
   TEXTILE = 'TEXTILE',
   BULKY_WASTE = 'BULKY WASTE',
 }
+
+export enum TypeBin {
+  RED = 'rouge',
+  YELLOW = 'jaune',
+  BLUE = 'bleu',
+  ORANGE = 'orange',
+  COMPOST = 'compost',
+}
+
+export const keyToEnum = <T extends Record<string, string | number>>(
+  enumType: T,
+  key: keyof T
+): T[keyof T] => {
+  return enumType[key];
+};

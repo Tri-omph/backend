@@ -5,12 +5,13 @@ import {
   ManyToOne,
   CreateDateColumn,
 } from 'typeorm';
-import { Customer } from './Customer'; // Assuming you already have a Customer entity
+import { Customer } from './Customer';
+import { TypeBin } from '../types/enums';
 
 export enum ScanType {
-  QUESTIONS = 'questions',
-  AI = 'ai',
-  BARCODE = 'barcode',
+  QUESTIONS = 'Questions',
+  AI = 'IA',
+  BARCODE = 'Barcode',
 }
 
 @Entity()
@@ -24,14 +25,14 @@ export class ScanHistory {
   customer!: Customer;
 
   @Column({ type: 'enum', enum: ScanType })
-  scanType!: ScanType;
-
-  @Column({ type: 'text', nullable: true })
-  details!: string;
+  method!: ScanType;
 
   @Column({ default: false })
   isValid!: boolean;
 
+  @Column({ type: 'enum', enum: TypeBin })
+  poubelle!: TypeBin;
+
   @CreateDateColumn()
-  createdAt!: Date;
+  date!: Date;
 }
