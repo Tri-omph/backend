@@ -1,0 +1,113 @@
+## 00_database.test.ts
+- Database Seeding
+  - devrait ajouter le mainadmin s'il n'existe pas
+  - ne devrait pas créer de deuxième main admin
+
+## 01_userController.test.ts
+- /users
+  - POST /users
+    - 201 si l'entrée est valide, devrait créer un utilisateur avec tous les champs définis et correctement initialisés
+    - 400 Bad Request
+      - 400 s'il manque le mail
+      - 400 s'il manque le pseudonyme
+      - 400 s'il manque le mot de passe
+    - 409 Conflict
+      - 409 si le mail est déjà utilisé
+      - 409 si le mail est déjà utilisé (avec casse différente)
+      - 409 si le pseudonyme est déjà utilisé
+    - 422 Unprocessable Entity
+      - 422 si le mail est mal formaté
+      - 422 si le pseudonyme est invalide
+      - 422 si le mot de passe fait moins de 8 caractères
+      - 422 si le mot de passe n'a pas de chiffre
+      - 422 si le mot de passe n'a pas de majuscule
+      - 422 si le mot de passe n'a pas de minuscule
+      - 422 si le mot de passe n'a pas de caractère spécial
+
+  - POST /users/auth
+    - 200 OK
+      - 200 si l'entrée est valide, devrait renvoyer un token (utilisateur, pseudonyme)
+      - 200 si l'entrée est valide, devrait renvoyer un token (utilisateur, email)
+      - 200 si l'entrée est valide, devrait renvoyer un token (mainadmin, pseudonyme)
+      - 200 si l'entrée est valide, devrait renvoyer un token (mainadmin, email)
+    - 400 Bad Request
+      - 400 s'il manque le login
+      - 400 s'il manque le mot de passe
+    - 401 Unauthorized
+      - 401 si le pseudonyme n'existe pas
+      - 401 si l'email n'existe pas
+      - 401 si le couple pseudonyme-mdp est faux
+      - 401 si le couple email-mdp est faux
+
+  - /users/me
+    - GET /users/me
+      - 200 OK
+        - 200 si l'entrée est valide, renvoie les informations utilisateur (utilisateur)
+        - 200 si l'entrée est valide, renvoie les informations utilisateur (mainadmin)
+      - 401 Unauthorized
+        - 401 s'il manque le token
+        - 401 si le token est invalide
+        - 401 si le token est valide mais expiré
+
+    - PATCH /users/me
+      - 200 OK
+        - 200 si l'entrée est valide, et que les données ont bien été mise à jour (username)
+        - 200 si l'entrée est valide, et que les données ont bien été mise à jour (mail)
+        - 200 si l'entrée est valide, et que les données ont bien été mise à jour (mot de passe)
+        - 200 si l'entrée est valide, et que les données ont bien été mise à jour (username, mail & mot de passe)
+        - 200 si l'entrée est valide, et que les données ont bien été mise à jour (username & ancien mail)
+        - 200 si l'entrée est valide, et que les données ont bien été mise à jour (ancien username & mail)
+      - 400 aucun paramètre n'est fourni
+      - 401 Unauthorized
+        - 401 s'il manque le token
+        - 401 si le token est invalide
+        - 401 si le token est valide mais expiré
+      - 409 Conflict
+        - 409 si le mail est déjà pris
+        - 409 si le pseudonyme est déjà pris
+        - 409 si le mail et le pseudonyme sont déjà pris
+        - 409 si le mail est déjà pris, malgré un pseudonyme valide
+        - 409 si le pseudonyme est déjà pris, malgré un mail valide
+      - 422 Unprocessable Entity
+        - 422 si le mail est invalide
+        - 422 si le pseudonyme est invalide
+        - 422 si le mot de passe fait moins de 8 caractères
+        - 422 si le mot de passe n'as pas de chiffre
+        - 422 si le mot de passe n'as pas de majuscule
+        - 422 si le mot de passe n'as pas de minuscule
+        - 422 si le mot de passe n'as pas de caractère spécial
+
+  - GET /users/info/:id
+    - 200 si le token admin est valide et l'ID existe, devrait retourner les informations de l'utilisateur
+    - 401 Unauthorized
+      - 401 s'il manque le token
+      - 401 si le token est invalide
+      - 401 si le token est valide mais expiré
+    - 403 si un utilisateur sans droits admin tente d'accéder aux informations
+    - 404 si l'ID ne correspond à aucun utilisateur
+    - 422 si l'ID n'est pas numérique
+
+  - POST /users/find
+    - 200 OK
+      - 200 si les filtres sont vides, et les droits suffisants (mainadmin), devrait renvoyer tous les utilisateurs
+      - 200 si les filtres sont valides, et les droits suffisants (mainadmin), devrait renvoyer les utilisateurs correspondant (id)
+      - 200 si les filtres sont valides, et les droits suffisants (mainadmin), devrait renvoyer les utilisateurs correspondant (username)
+      - 200 si les filtres sont valides, et les droits suffisants (mainadmin), devrait renvoyer les utilisateurs correspondant (points)
+      - 200 si les filtres sont valides, et les droits suffisants (mainadmin), devrait renvoyer les utilisateurs correspondant (login)
+      - 200 si les filtres sont valides, et les droits suffisants (mainadmin), devrait renvoyer les utilisateurs correspondant (restricted)
+      - 200 si les filtres sont valides, et les droits suffisants (mainadmin), devrait renvoyer les utilisateurs correspondant (admin)
+      - 200 si les filtres sont vides, et les droits suffisants (admin), devrait renvoyer tous les utilisateurs
+      - 200 si les filtres sont valides, et les droits suffisants (admin), devrait renvoyer les utilisateurs correspondant (id)
+    - 401 Unauthorized
+      - 401 s'il manque le token
+      - 401 si le token est invalide
+      - 401 si le token est valide mais expiré
+    - 403 si un utilisateur sans droits admin tente de chercher des utilisateurs
+    - 422 Unprocessable Entity
+      - 422 si les filtres sont invalides (id non numérique)
+      - 422 si les filtres sont invalides (pointsMin non numérique)
+      - 422 si les filtres sont invalides (pointsMax non numérique)
+      - 422 si les filtres sont invalides (pointsMin < 0)
+      - 422 si les filtres sont invalides (pointsMin > pointsMax)
+      - 422 si les filtres sont invalides (restricted non booléen)
+      - 422 si les filtres sont invalides (admin non booléen)

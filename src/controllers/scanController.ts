@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { isTest } from '../app';
 
 const processBarcodeScan = async (req: Request, res: Response) => {
   const barcodeData = req.body.barcode;
@@ -23,7 +24,7 @@ const processBarcodeScan = async (req: Request, res: Response) => {
 
     res.status(200).json(result);
   } catch (error) {
-    console.error('Erreur de traitement du scan barcode:', error);
+    if (!isTest) console.error('Erreur de traitement du scan barcode:', error);
     res
       .status(500)
       .json({ error: true, message: 'Erreur interne du serveur.' });
@@ -57,7 +58,7 @@ const processImageScan = async (req: Request, res: Response) => {
   try {
     //TO DO
   } catch (error) {
-    console.error('Erreur de traitement du scan image:', error);
+    if (!isTest) console.error('Erreur de traitement du scan image:', error);
     res
       .status(500)
       .json({ error: true, message: 'Erreur interne du serveur.' });
@@ -88,7 +89,7 @@ const submitWasteInfo = async (req: Request, res: Response) => {
       data: wasteInfo,
     });
   } catch (error) {
-    console.error('Error submitting waste info:', error);
+    if (!isTest) console.error('Error submitting waste info:', error);
     res
       .status(500)
       .json({ error: true, message: 'Erreur interne du serveur.' });
