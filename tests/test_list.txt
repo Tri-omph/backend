@@ -111,3 +111,23 @@
       - 422 si les filtres sont invalides (pointsMin > pointsMax)
       - 422 si les filtres sont invalides (restricted non booléen)
       - 422 si les filtres sont invalides (admin non booléen)
+
+## 02_adminController.test.ts
+- /admin
+  - PATCH /promote/:id
+    - 200 si l'utilisateur a été promu
+    - 400 Bad Request 
+      - 400 si l'ID est vide
+      - 400 si l'ID n'est pas numérique
+      - 400 si l'ID n'est pas un nombre entier positif
+    - 404 si l'ID ne correspond à aucun utilisateur
+    - 409 si l'utilisateur a déjà les droits admin
+
+  - PATCH /restrict/:id
+    - 200 OK
+
+  - PATCH /free/:id
+    - 200 OK
+
+  - PATCH /demote/:id
+    - 200 OK
