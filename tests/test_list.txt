@@ -115,19 +115,33 @@
 ## 02_adminController.test.ts
 - /admin
   - PATCH /promote/:id
-    - 200 si l'utilisateur a été promu
+    - 200 si le token admin est valide et l'ID existe, devrait donner le statut admin a l'utilisateur
     - 400 Bad Request 
       - 400 si l'ID est vide
       - 400 si l'ID n'est pas numérique
-      - 400 si l'ID n'est pas un nombre entier positif
+      - 400 si l'ID n'est pas un entier naturel
     - 404 si l'ID ne correspond à aucun utilisateur
     - 409 si l'utilisateur a déjà les droits admin
 
   - PATCH /restrict/:id
-    - 200 OK
+    - 200 si le token admin est valide et l'ID existe, devrait restreindre l'utilisateur
+    - 400 Bad Request 
+      - 400 si l'ID est vide
+      - 400 si l'ID n'est pas numérique
+      - 400 si l'ID n'est pas un entier naturel
+    - 404 si l'ID ne correspond à aucun utilisateur
+    - 409 Conflict
+      - 409 si l'utilisateur a les droits admin
+      - 409 si l'utilisateur est déjà restreint
 
   - PATCH /free/:id
     - 200 OK
 
   - PATCH /demote/:id
-    - 200 OK
+    - 200 si le token admin est valide et l'ID existe, devrait enlever le statut admin a l'utilisateur
+    - 400 Bad Request 
+      - 400 si l'ID est vide
+      - 400 si l'ID n'est pas numérique
+      - 400 si l'ID n'est pas un entier naturel
+    - 404 si l'ID ne correspond à aucun utilisateur
+    - 409 si l'utilisateur n'a pas de droits admin
