@@ -7,8 +7,8 @@ import scanController from '../controllers/scanController';
 // Les contrôleurs correspondants seront importés et utilisés pour traiter les demandes.
 
 const router = Router();
-
-router.post('/scan/barcode', scanController.processBarcodeScan); //POST /scan/barcode
+// GET
+router.get('/products', scanController.processBarcodeScan); // GET /products?barcode=12345
 router.post('/scan/image', scanController.processImageScan); //POST /scan/image
 
 router.post('/waste-info', scanController.submitWasteInfo); // POST /waste-info
