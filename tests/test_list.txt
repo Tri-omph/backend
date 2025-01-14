@@ -112,10 +112,6 @@
       - 422 si les filtres sont invalides (restricted non booléen)
       - 422 si les filtres sont invalides (admin non booléen)
 
-
-// ID vide marchent pas et tout demote :D
-
-
 ## 02_adminController.test.ts
 - /admin
   - PATCH /promote/:id
@@ -164,9 +160,7 @@
     - 409 si l'utilisateur n'est pas restreint
 
   - PATCH /demote/:id
-    - 200 OK
-      - 200 si le token admin est valide et l'ID existe, devrait enlever le statut admin a l'utilisateur
-      - 200 si le token mainadmin est valide et l'ID existe, devrait enlever le statut admin a l'utilisateur
+    - 200 si le token mainadmin est valide et l'ID existe, devrait enlever le statut admin a l'utilisateur
     - 400 Bad Request 
       - 400 si l'ID est vide
       - 400 si l'ID n'est pas numérique
@@ -175,6 +169,8 @@
       - 401 s'il manque le token
       - 401 si le token est invalide
       - 401 si le token est valide mais expiré
-    - 403 si un utilisateur sans droits admin tente d'enlever le statut admin d'un utilisateur
+    - 403 Forbidden
+      - 403 si un utilisateur sans droits mainadmin (utilisateur) tente d'enlever le statut admin d'un utilisateur
+      - 403 si un utilisateur sans droits mainadmin (admin) tente d'enlever le statut admin d'un utilisateur
     - 404 si l'ID ne correspond à aucun utilisateur
     - 409 si l'utilisateur n'a pas de droits admin

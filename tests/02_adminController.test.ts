@@ -737,63 +737,36 @@ describe('/admin', () => {
       mainadminToken = generateJWT(0, true);
     });
 
-    describe('200 OK', () => {
-      it("200 si le token admin est valide et l'ID existe, devrait enlever le statut admin a l'utilisateur", async () => {
-        const response = await request(app)
-          .patch(`/api/v1/admin/demote/${id2}`)
-          .set('Authorization', `Bearer ${adminToken}`);
+    it("200 si le token mainadmin est valide et l'ID existe, devrait enlever le statut admin a l'utilisateur", async () => {
+      const response = await request(app)
+        .patch(`/api/v1/admin/demote/${id2}`)
+        .set('Authorization', `Bearer ${mainadminToken}`);
 
-        expect(response.status).toBe(200);
-        expect(response.body).toHaveProperty(
-          'message',
-          'User demoted successfully'
-        );
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty(
+        'message',
+        'User demoted successfully'
+      );
 
-        const customerRepository = AppDataSource.getRepository(Customer);
-        const oldUserData = await customerRepository.findBy({
-          username: user.username,
-          admin: true,
-        });
-        expect(oldUserData).toHaveLength(0);
-
-        const userData = await customerRepository.findBy({
-          username: user.username,
-        });
-        expect(userData).toHaveLength(1);
-        expect(!userData[0].admin).toBeTruthy();
+      const customerRepository = AppDataSource.getRepository(Customer);
+      const oldUserData = await customerRepository.findBy({
+        username: user.username,
+        admin: true,
       });
+      expect(oldUserData).toHaveLength(0);
 
-      it("200 si le token mainadmin est valide et l'ID existe, devrait enlever le statut admin a l'utilisateur", async () => {
-        const response = await request(app)
-          .patch(`/api/v1/admin/demote/${id2}`)
-          .set('Authorization', `Bearer ${mainadminToken}`);
-
-        expect(response.status).toBe(200);
-        expect(response.body).toHaveProperty(
-          'message',
-          'User demoted successfully'
-        );
-
-        const customerRepository = AppDataSource.getRepository(Customer);
-        const oldUserData = await customerRepository.findBy({
-          username: user.username,
-          admin: true,
-        });
-        expect(oldUserData).toHaveLength(0);
-
-        const userData = await customerRepository.findBy({
-          username: user.username,
-        });
-        expect(userData).toHaveLength(1);
-        expect(!userData[0].admin).toBeTruthy();
+      const userData = await customerRepository.findBy({
+        username: user.username,
       });
+      expect(userData).toHaveLength(1);
+      expect(!userData[0].admin).toBeTruthy();
     });
 
     describe('400 Bad Request', () => {
       it("400 si l'ID est vide", async () => {
         const response = await request(app)
           .patch('/api/v1/admin/demote/')
-          .set('Authorization', `Bearer ${adminToken}`);
+          .set('Authorization', `Bearer ${mainadminToken}`);
 
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty(
@@ -805,7 +778,7 @@ describe('/admin', () => {
       it("400 si l'ID n'est pas numérique", async () => {
         const response = await request(app)
           .patch('/api/v1/admin/demote/notanumber')
-          .set('Authorization', `Bearer ${adminToken}`);
+          .set('Authorization', `Bearer ${mainadminToken}`);
 
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty(
@@ -817,7 +790,7 @@ describe('/admin', () => {
       it("400 si l'ID n'est pas entier naturel", async () => {
         const response = await request(app)
           .patch('/api/v1/admin/demote/1.5')
-          .set('Authorization', `Bearer ${adminToken}`);
+          .set('Authorization', `Bearer ${mainadminToken}`);
 
         expect(response.status).toBe(400);
         expect(response.body).toHaveProperty(
@@ -859,19 +832,30 @@ describe('/admin', () => {
       });
     });
 
-    it('403 si un utilisateur sans droits admin tente de promouvoir un utilisateur', async () => {
-      const response = await request(app)
-        .patch(`/api/v1/admin/demote/${id}`)
-        .set('Authorization', `Bearer ${userToken}`);
+    describe('403 Forbidden', () => {
+      it('403 si un utilisateur sans droits mainadmin (utilisateur) tente de promouvoir un utilisateur', async () => {
+        const response = await request(app)
+          .patch(`/api/v1/admin/demote/${id}`)
+          .set('Authorization', `Bearer ${userToken}`);
 
-      expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('message', 'Droits insuffisants.');
+        expect(response.status).toBe(403);
+        expect(response.body).toHaveProperty('message', 'Droits insuffisants.');
+      });
+
+      it('403 si un utilisateur sans droits mainadmin (admin) tente de promouvoir un utilisateur', async () => {
+        const response = await request(app)
+          .patch(`/api/v1/admin/demote/${id}`)
+          .set('Authorization', `Bearer ${adminToken}`);
+
+        expect(response.status).toBe(403);
+        expect(response.body).toHaveProperty('message', 'Droits insuffisants.');
+      });
     });
 
     it("404 si l'ID ne correspond à aucun utilisateur", async () => {
       const response = await request(app)
         .patch('/api/v1/admin/demote/999999')
-        .set('Authorization', `Bearer ${adminToken}`);
+        .set('Authorization', `Bearer ${mainadminToken}`);
 
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('message', 'User not found');
@@ -880,7 +864,7 @@ describe('/admin', () => {
     it("409 si l'utilisateur n'a pas de droits admin", async () => {
       const response = await request(app)
         .patch(`/api/v1/admin/demote/${id}`)
-        .set('Authorization', `Bearer ${adminToken}`);
+        .set('Authorization', `Bearer ${mainadminToken}`);
 
       expect(response.status).toBe(409);
       expect(response.body).toHaveProperty(
