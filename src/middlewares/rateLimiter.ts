@@ -1,3 +1,4 @@
+import { RequestHandler } from 'express';
 import rateLimit from 'express-rate-limit';
 
 /**
@@ -7,8 +8,10 @@ import rateLimit from 'express-rate-limit';
  * Permet de limiter à nRequest/dureeMS requêtes par utilisateur
  * @returns le middleware
  */
-const rateLimiter = (nRequest: number, dureeMS: number) =>
-  rateLimit({
+const rateLimiter = (nRequest: number, dureeMS: number): RequestHandler => {
+  if (process.env.NODE_ENV === 'test') return (req, res, next) => next();
+
+  return rateLimit({
     windowMs: dureeMS,
     max: nRequest,
     message: {
@@ -17,5 +20,6 @@ const rateLimiter = (nRequest: number, dureeMS: number) =>
     standardHeaders: true,
     legacyHeaders: false,
   });
+};
 
 export { rateLimiter };
