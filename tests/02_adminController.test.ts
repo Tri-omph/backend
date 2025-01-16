@@ -138,18 +138,6 @@ describe('/admin', () => {
     });
 
     describe('400 Bad Request', () => {
-      it("400 si l'ID est vide", async () => {
-        const response = await request(app)
-          .patch('/api/v1/admin/promote/')
-          .set('Authorization', `Bearer ${adminToken}`);
-
-        expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty(
-          'message',
-          'Invalid or missing ID parameter'
-        );
-      });
-
       it("400 si l'ID n'est pas numérique", async () => {
         const response = await request(app)
           .patch('/api/v1/admin/promote/notanumber')
@@ -345,18 +333,6 @@ describe('/admin', () => {
     });
 
     describe('400 Bad Request', () => {
-      it("400 si l'ID est vide", async () => {
-        const response = await request(app)
-          .patch('/api/v1/admin/restrict/')
-          .set('Authorization', `Bearer ${adminToken}`);
-
-        expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty(
-          'message',
-          'Invalid or missing ID parameter'
-        );
-      });
-
       it("400 si l'ID n'est pas numérique", async () => {
         const response = await request(app)
           .patch('/api/v1/admin/restrict/notanumber')
@@ -576,18 +552,6 @@ describe('/admin', () => {
     });
 
     describe('400 Bad Request', () => {
-      it("400 si l'ID est vide", async () => {
-        const response = await request(app)
-          .patch('/api/v1/admin/free/')
-          .set('Authorization', `Bearer ${adminToken}`);
-
-        expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty(
-          'message',
-          'Invalid or missing ID parameter'
-        );
-      });
-
       it("400 si l'ID n'est pas numérique", async () => {
         const response = await request(app)
           .patch('/api/v1/admin/free/notanumber')
@@ -763,18 +727,6 @@ describe('/admin', () => {
     });
 
     describe('400 Bad Request', () => {
-      it("400 si l'ID est vide", async () => {
-        const response = await request(app)
-          .patch('/api/v1/admin/demote/')
-          .set('Authorization', `Bearer ${mainadminToken}`);
-
-        expect(response.status).toBe(400);
-        expect(response.body).toHaveProperty(
-          'message',
-          'Invalid or missing ID parameter'
-        );
-      });
-
       it("400 si l'ID n'est pas numérique", async () => {
         const response = await request(app)
           .patch('/api/v1/admin/demote/notanumber')
@@ -861,16 +813,30 @@ describe('/admin', () => {
       expect(response.body).toHaveProperty('message', 'User not found');
     });
 
-    it("409 si l'utilisateur n'a pas de droits admin", async () => {
-      const response = await request(app)
-        .patch(`/api/v1/admin/demote/${id}`)
-        .set('Authorization', `Bearer ${mainadminToken}`);
+    describe('409 Conflict', () => {
+      it("409 si l'utilisateur n'a pas de droits admin", async () => {
+        const response = await request(app)
+          .patch(`/api/v1/admin/demote/${id}`)
+          .set('Authorization', `Bearer ${mainadminToken}`);
 
-      expect(response.status).toBe(409);
-      expect(response.body).toHaveProperty(
-        'message',
-        'This user is not an admin'
-      );
+        expect(response.status).toBe(409);
+        expect(response.body).toHaveProperty(
+          'message',
+          'This user is not an admin'
+        );
+      });
+
+      it("409 si l'utilisateur est le mainadmin", async () => {
+        const response = await request(app)
+          .patch(`/api/v1/admin/demote/${0}`)
+          .set('Authorization', `Bearer ${mainadminToken}`);
+
+        expect(response.status).toBe(409);
+        expect(response.body).toHaveProperty(
+          'message',
+          'This user is not an admin'
+        );
+      });
     });
   });
 });

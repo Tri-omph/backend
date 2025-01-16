@@ -173,4 +173,6 @@
       - 403 si un utilisateur sans droits mainadmin (utilisateur) tente d'enlever le statut admin d'un utilisateur
       - 403 si un utilisateur sans droits mainadmin (admin) tente d'enlever le statut admin d'un utilisateur
     - 404 si l'ID ne correspond à aucun utilisateur
-    - 409 si l'utilisateur n'a pas de droits admin
+    - 409 Conflict
+      - 409 si l'utilisateur n'a pas de droits admin
+      - 409 si l'utilisateur est le mainadmin
