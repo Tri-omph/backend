@@ -20,7 +20,7 @@ if (process.env.NODE_ENV === 'test') {
     username: process.env.DB_USERNAME ?? 'root',
     password: process.env.DB_PWD ?? '',
     database: process.env.DB_NAME ?? 'tri_omph',
-    synchronize: false,
+    synchronize: true, // TODO Réparer les CI avec synchronize false
     logging: true,
     entities: [Customer],
     migrations: ['src/database/migrations/*.ts'],

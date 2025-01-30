@@ -10,7 +10,9 @@
     "lint": "eslint \"**/*.{js,ts}\"",
     "lint:fix": "eslint \"**/*.{js,ts}\" --fix",
     "format": "prettier --write \"**/*.{js,ts,json,md}\"",
-    "format:check": "prettier --check \"**/*.{js,ts,json,md}\""
+    "format:check": "prettier --check \"**/*.{js,ts,json,md}\"",
+    "migration:generate": "typeorm migration:generate -d ./dist/database/data-source.js ./dist/database/migrations/",
+    "migration:run": "typeorm migration:run -d ./dist/database/data-source.js"
   },
   "repository": {
     "type": "git",

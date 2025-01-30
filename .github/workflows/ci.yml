@@ -3,6 +3,8 @@ name: Node.js CI
 on:
   push:
     branches: ['*'] # Trigger on all branches
+  pull_request:
+    branches: ['*']
 
 jobs:
   build:
@@ -10,6 +12,19 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x]
+    
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: test_db
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping --silent" --health-interval=5s --health-timeout=10s --health-retries=5
+
 
     steps:
       - uses: actions/checkout@v2
@@ -39,3 +54,31 @@ jobs:
       # Run tests
       - name: Run Jest tests
         run: npm test
+
+      # Install docker-compose
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      # Remove old images
+      - name: Clean up Docker images
+        run: |
+          docker system prune -af
+
+      # Build Docker image and verify it builds successfully
+      - name: Build Docker image using Docker Compose
+        run: |
+          docker-compose -f docker-compose.yaml build
+
+      # Start the app and MySQL using Docker Compose and verify it works
+      - name: Start the app and MySQL using Docker Compose
+        run: |
+          DB_PORT=3307 docker-compose -f docker-compose.yaml up -d
+
+          echo "Waiting for the app to start..."
+          sleep 20
+
+          curl --fail http://localhost:3000 || exit 1
+
+          docker-compose -f docker-compose.yaml down

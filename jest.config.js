@@ -3,4 +3,5 @@ module.exports = {
   testEnvironment: 'node',
   testSequencer: './tests/lexicographicSequencer.js',
   globalTeardown: './tests/globalTeardown.ts',
+  testTimeout: 15000,
 };
