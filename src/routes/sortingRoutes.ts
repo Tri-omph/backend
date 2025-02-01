@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middlewares/authenticate';
-import gamificationController from '../controllers/gamificationController';
+import sortingController from '../controllers/sortingController';
 
 const router = Router();
 
 router.use(authMiddleware); // Authentifié
 
-router.get('/points', gamificationController.getCustomerPoints);
+router.patch('/', sortingController.sortAndReward);
 
 export default router;

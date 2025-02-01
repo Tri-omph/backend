@@ -9,6 +9,9 @@ import errorHandler from './middlewares/errorHandler';
 import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
 import scanRoutes from './routes/scanRoutes';
+import gamificationsRoutes from './routes/gamificationRoutes';
+import sortingRoutes from './routes/sortingRoutes';
+
 import { AppDataSource } from './database/data-source';
 import { seedDatabase } from './database/seed/mainSeeder';
 
@@ -28,6 +31,8 @@ app.use(urlencoded({ extended: true })); // Parse URL-encoded data
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/scan', scanRoutes);
+app.use('/api/v1/gamification', gamificationsRoutes);
+app.use('/api/v1/sort', sortingRoutes);
 
 app.use(errorHandler); // Gère les erreurs (voir src/middleware/ErrorHandler.ts). À laisser APRÈS les routes
 
