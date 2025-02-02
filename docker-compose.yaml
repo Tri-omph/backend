@@ -3,7 +3,7 @@ services:
     image: mysql:8
     container_name: backend-db
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PWD}
+      MYSQL_ROOT_PASSWORD: ${DB_PWD_ROOT}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PWD}
@@ -11,6 +11,11 @@ services:
       - "${DB_PORT}:3306"
     volumes:
       - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
 
   backend:
     build:
@@ -22,7 +27,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - database
+      database: 
+        condition: service_healthy
     environment:
       - DB_HOST=database
       - DB_PORT=3306

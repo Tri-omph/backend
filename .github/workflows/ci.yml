@@ -21,6 +21,8 @@ jobs:
           MYSQL_DATABASE: test_db
           MYSQL_USER: test
           MYSQL_PASSWORD: test
+          MYSQL_ROOT_HOST: "%"
+          MYSQL_INITDB_SKIP_TZINFO: 1
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping --silent" --health-interval=5s --health-timeout=10s --health-retries=5
@@ -65,6 +67,11 @@ jobs:
       - name: Clean up Docker images
         run: |
           docker system prune -af
+
+      # Clear volumes
+      - name: Ensure no volumes are left
+        run: |
+          docker-compose down -v
 
       # Build Docker image and verify it builds successfully
       - name: Build Docker image using Docker Compose
