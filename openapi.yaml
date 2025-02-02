@@ -194,9 +194,84 @@ paths:
         '400':
           description: Paramètres de recherche invalides.
 
+  /users/history/me:
+    get:
+      summary: Récupère l'historique de l'utilisateur actuel.
+      description: Récupère l'historique de l'utilisateur authentifié.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Historique récupéré.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScanHistory'
+        '401':
+          description: 'Authentification requise ou token invalide ou expiré.'
+        '404':
+          description: 'Utilisateur non trouvé.'
+        '500':
+          description: 'Erreur interne.'
+    post:
+      summary: Ajoute une nouvelle entrée.
+      description: Ajoute une nouvelle entrée dans l'historique de l'utilisateur authentifié.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewScanHistory'
+      responses:
+        '201':
+          description: Scan history successfully added.
+        '400':
+          description: Tous les champs sont requis.
+        '401':
+          description: Authenthification requise.
+        '404':
+          description: Utilisateur introuvable.
+        '500':
+          description: Erreur interne.
+
+  /users/history/{id}:
+    get:
+      summary: Récupère l'historique d'un utilisateur (Administrateur)
+      description: Récupère l'historique d'un utilisateur par ID. Demande les privilèges admin.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'ID de l'utilisateur dont on veut.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Historique récupéré.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScanHistory"
+        "401":
+          description: Authentification requise.
+        "404":
+          description: Utilisateur introuvable.
+        "422":
+          description: ID non numérique.
+        "500":
+          description: Erreur interne.
+
   /scan/barcode:
     post:
-      summary: Scanner et traiter un article de déchet
+      summary: Scanner et traiter un article de déchet.
       description: Accepte un code-barres et retourne le résultat de la reconnaissance.
       requestBody:
         required: true
@@ -206,7 +281,7 @@ paths:
               type: object
               properties:
                 type: number
-                description: Le code-barres.
+                description: Le code-barre.
       responses:
         '200':
           description: Scan traité avec succès, retourne les résultats de reconnaissance.
@@ -417,6 +492,65 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  schemas:
+    ScanHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        method:
+          $ref: '#/components/schemas/ScanType'
+        isValid:
+          type: boolean
+          example: true
+        poubelle:
+          $ref: '#/components/schemas/TypeBin'
+        disposableType:
+          $ref: '#/components/schemas/TypeDisposable'
+        date:
+          type: string
+          format: date-time
+          example: '2025-02-02T12:34:56.789Z'
+
+    ScanType:
+      type: string
+      enum:
+        - Questions
+        - IA
+        - Barcode
+      example: 'Barcode'
+
+    TypeBin:
+      type: string
+      enum:
+        - rouge
+        - jaune
+        - bleu
+        - orange
+        - compost
+      example: 'jaune'
+
+    TypeDisposable:
+      type: string
+      enum:
+        - PLASTIC PACKAGING
+        - CARDBOARD PACKAGING
+        - PAPER
+        - GLASS PACKAGING
+        - METAL PACKAGING
+        - USED
+        - DAMAGED
+        - DISHES
+        - ORGANIC
+        - NOT PACKAGING
+        - MEDICINE
+        - TOXIC
+        - DEVICE
+        - TEXTILE
+        - BULKY WASTE
+      example: 'PLASTIC PACKAGING'
 
 security:
   - BearerAuth: []

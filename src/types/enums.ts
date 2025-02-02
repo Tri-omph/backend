@@ -24,6 +24,12 @@ export enum TypeBin {
   COMPOST = 'compost',
 }
 
+export enum ScanType {
+  QUESTIONS = 'Questions',
+  AI = 'IA',
+  BARCODE = 'Barcode',
+}
+
 export const keyToEnum = <T extends Record<string, string | number>>(
   enumType: T,
   key: keyof T

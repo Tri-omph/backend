@@ -6,13 +6,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { Customer } from './Customer';
-import { TypeBin } from '../types/enums';
-
-export enum ScanType {
-  QUESTIONS = 'Questions',
-  AI = 'IA',
-  BARCODE = 'Barcode',
-}
+import { ScanType, TypeBin, TypeDisposable } from '../types/enums';
 
 @Entity()
 export class ScanHistory {
@@ -24,14 +18,26 @@ export class ScanHistory {
   })
   customer!: Customer;
 
-  @Column({ type: 'enum', enum: ScanType })
+  @Column({
+    type: process.env.NODE_ENV === 'test' ? 'text' : 'enum',
+    enum: ScanType,
+  })
   method!: ScanType;
 
   @Column({ default: false })
   isValid!: boolean;
 
-  @Column({ type: 'enum', enum: TypeBin })
+  @Column({
+    type: process.env.NODE_ENV === 'test' ? 'text' : 'enum',
+    enum: TypeBin,
+  })
   poubelle!: TypeBin;
+
+  @Column({
+    type: process.env.NODE_ENV === 'test' ? 'text' : 'enum',
+    enum: TypeDisposable,
+  })
+  type!: TypeDisposable;
 
   @CreateDateColumn()
   date!: Date;

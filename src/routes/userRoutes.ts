@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import userController from '../controllers/userController';
+import historyController from '../controllers/historyController';
 import { authMiddleware } from '../middlewares/authenticate';
 import { adminMiddleware } from '../middlewares/authenticateAdmin';
 
@@ -18,10 +19,13 @@ router.use(authMiddleware);
 
 router.get('/me', userController.getCurrentUser); // GET /api/v1/users/me
 router.patch('/me', userController.updateCurrentUser); // PATCH /api/v1/users/me
+router.get('/history/me', historyController.getCurrentHistory); // GET /api/v1/users/history/me
+router.post('/history/me', historyController.addCurrentHistory); // POST /api/v1/users/history/me
 
 router.use(adminMiddleware);
 
 router.post('/find', userController.findUser); // POST /api/v1/users/find
 router.get('/info/:id', userController.getUserInfo); // GET /api/v1/users/info/:id
+router.get('/history/:id', historyController.getUserHistory); // GET /api/v1/users/history/info/:id
 
 export default router;
