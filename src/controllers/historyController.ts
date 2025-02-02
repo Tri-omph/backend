@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import { AppDataSource } from '../database/data-source';
 import { Customer } from '../models/Customer';
 import { isTest } from '../app';
-import { ScanHistory } from '../models/ScanHistory';
+import { ScanHistory } from '../models/scanHistory';
 
 const getScanHistoryByCustomerId = async (
   customerId: number

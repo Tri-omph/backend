@@ -1,6 +1,6 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { User } from './User';
-import { ScanHistory } from './ScanHistory';
+import { ScanHistory } from './scanHistory';
 
 @Entity()
 export class Customer extends User {

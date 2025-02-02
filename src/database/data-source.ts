@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { Customer } from '../models/Customer';
-import { ScanHistory } from '../models/ScanHistory';
+import { ScanHistory } from '../models/scanHistory';
 import * as mysql from 'mysql2';
 
 let AppDataSource: DataSource;
