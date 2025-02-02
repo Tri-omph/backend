@@ -29,7 +29,7 @@ Pour utiliser ce projet, suivez les étapes ci-dessous :
     DB_PORT=5432
     DB_USERNAME=test
     DB_PWD=test
-    DB_NAME=test_db
+    DB_NAME=tri_omph
 
     # Mot de passe du compte administrateur principal, initialisé par défaut
     MAIN_ADMIN_PWD="le_mot_de_passe_du_client"

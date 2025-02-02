@@ -5,42 +5,12 @@ info:
   description: API pour la gestion de l'authentification des utilisateurs, du scan des déchets et du tri
 
 servers:
-  - url: https://api.example.com
+  - url: https://api.example.com/api/v1
     description: Serveur de production
-  - url: http://localhost:3000
+  - url: http://localhost:3000/api/v1
     description: Serveur de développement local
 
 paths:
-  /auth:
-    post:
-      summary: Authentifier un utilisateur
-      description: Authentifie un utilisateur en vérifiant le nom d'utilisateur et le mot de passe, et retourne un token JWT.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
-      responses:
-        '200':
-          description: Authentification réussie, retourne un token JWT.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-        '401':
-          description: Nom d'utilisateur ou mot de passe invalide.
-        '429':
-          description: Trop de requêtes. Vous avez dépassé la limite de taux. Veuillez réessayer plus tard.
-
   /users:
     post:
       summary: Créer un nouvel utilisateur
@@ -72,6 +42,36 @@ paths:
           description: Entrée invalide ou email/nom d'utilisateur déjà pris.
         '429':
           description: Trop de requêtes. Vous avez dépassé la limite de taux. Veuillez réessayer plus tard.
+
+  /users/auth:
+    post:
+      summary: Authentifier un utilisateur
+      description: Authentifie un utilisateur en vérifiant le nom d'utilisateur et le mot de passe, et retourne un token JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authentification réussie, retourne un token JWT.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Nom d'utilisateur ou mot de passe invalide.
+        '429':
+          description: Trop de requêtes. Vous avez dépassé la limite de taux. Veuillez réessayer plus tard
 
   /users/me:
     get:
