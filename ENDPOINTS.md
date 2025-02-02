@@ -464,6 +464,62 @@ Lever les restrictions imposées à un utilisateur avec l'ID indiqué.
 
 ---
 
+### GET /leaderboard
+
+#### Description :
+
+Récupère les utilisateurs ayant les meilleurs scores. Le nombre d'utilisateurs à renvoyer est déterminé par le paramètre `limit`, qui est optionnel et par défaut à 100.
+
+#### Paramètres de requête :
+
+- **limit** (optionnel) : Le nombre d'utilisateurs à renvoyer (par défaut 100).
+
+#### Réponses :
+
+- **200 OK** : Liste des utilisateurs avec leurs scores, triée par ordre décroissant de points.
+  ```json
+  [
+    {
+      "username": "user1",
+      "points": 5000
+    },
+    {
+      "username": "user2",
+      "points": 4500
+    },
+    {
+      "username": "user3",
+      "points": 4000
+    }
+    ...
+  ]
+  ```
+- **422 Unprocessable Entity** : La valeur du paramètre `limit` est invalide.
+
+---
+
+### GET /leaderboard/me
+
+#### Description :
+
+Récupère le rang de l'utilisateur actuellement authentifié dans le classement.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : Le rang de l'utilisateur dans le classement.
+  ```json
+  {
+    "rank": 5
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou expiré.
+
+---
+
 ## Codes de Réponse
 
 - **200 OK** : La requête a été réussie et la réponse contient les données demandées.
