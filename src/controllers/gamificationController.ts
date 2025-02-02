@@ -6,7 +6,6 @@ import { AppDataSource } from '../database/data-source';
 const incrementCustomerPoints = async (customerId: number) => {
   try {
     const customerRepository = AppDataSource.getRepository(Customer);
-
     const customer = await customerRepository.findOne({
       where: { id: customerId },
     });
@@ -23,6 +22,10 @@ const incrementCustomerPoints = async (customerId: number) => {
     console.error('Erreur lors de la mise à jour des points:', error);
     throw new Error('Impossible de mettre à jour les points.');
   }
+};
+
+const getCustomerLevel = (customerPoints: number) => {
+  return customerPoints;
 };
 
 const getCustomerPoints = async (req: Request, res: Response) => {
@@ -62,4 +65,5 @@ const getCustomerPoints = async (req: Request, res: Response) => {
 export default {
   incrementCustomerPoints,
   getCustomerPoints,
+  getCustomerLevel,
 };
