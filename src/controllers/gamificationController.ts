@@ -35,7 +35,7 @@ const getLeaderboardRank: RequestHandler = async (_req, res) => {
       res.status(401).json({ message: 'Authentification requise.' });
       return;
     }
-    const currentUserId = res.locals.id;
+    const currentUserId = res.locals.user.id;
 
     const customerRepository = AppDataSource.getRepository(Customer);
 
@@ -46,7 +46,7 @@ const getLeaderboardRank: RequestHandler = async (_req, res) => {
 
     const rank =
       leaderboard.findIndex(
-        (user) => user.username === currentUserId.toString()
+        (user) => user.id.toString() === currentUserId.toString()
       ) + 1;
 
     if (rank === 0) {

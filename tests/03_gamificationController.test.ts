@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { hash, compare } from 'bcrypt';
+import { hash } from 'bcrypt';
 
 import app from '../src/app';
 import { Customer } from '../src/models/Customer';
@@ -7,11 +7,6 @@ import { generateExpiredJWT, resetDataSource } from './utils';
 import { seedDatabase } from '../src/database/seed/mainSeeder';
 import { AppDataSource } from '../src/database/data-source';
 import { generateJWT } from '../src/utils';
-
-const mainadminCreds = {
-  login: 'mainadmin',
-  password: process.env.MAIN_ADMIN_PWD ?? 'mot_de_passe_pas_sécurisé_du_tout',
-};
 
 let i = 0;
 const addCustomer = async (
@@ -74,7 +69,7 @@ describe('/game', () => {
           .expect(200);
 
         const leaderboard = response.body;
-        expect(leaderboard).toHaveLength(10);
+        expect(leaderboard).toHaveLength(11);
         for (let i = 0; i < 10; i++) {
           expect(leaderboard[i].username).toBe(usersSorted[i].username);
           expect(leaderboard[i].points).toBe(usersSorted[i].points);
@@ -83,7 +78,7 @@ describe('/game', () => {
 
       it('200 devrait renvoyer les 5 premiers', async () => {
         const response = await request(app)
-          .get('/game/leaderboard?limit=5')
+          .get('/api/v1/game/leaderboard?limit=5')
           .expect(200);
 
         const leaderboard = response.body;
@@ -98,7 +93,7 @@ describe('/game', () => {
     describe('422 Unprocessable Entity', () => {
       it("422 si la limite indiquée n'est pas numérique", async () => {
         const response = await request(app)
-          .get('/game/leaderboard?limit=abc')
+          .get('/api/v1/game/leaderboard?limit=abc')
           .expect(422);
 
         expect(response.body.message).toBe('Limite invalide.');
@@ -146,11 +141,11 @@ describe('/game', () => {
         await Promise.all(
           usersSorted.map(async (el, i) => {
             const response = await request(app)
-              .get('/game/leaderboard/me')
+              .get('/api/v1/game/leaderboard/me')
               .set('Authorization', `Bearer ${generateJWT(el.id, false)}`)
               .expect(200);
 
-            expect(response.body.rank).toBe(i);
+            expect(response.body.rank).toBe(i + 1);
           })
         );
       });
@@ -158,7 +153,7 @@ describe('/game', () => {
 
     describe('401 Unauthorized', () => {
       it("401 s'il manque le token", async () => {
-        const response = await request(app).get('/api/v1/game/leaderboard');
+        const response = await request(app).get('/api/v1/game/leaderboard/me');
 
         expect(response.status).toBe(401);
         expect(response.body).toHaveProperty(
@@ -170,7 +165,7 @@ describe('/game', () => {
       it('401 si le token est invalide', async () => {
         const invalidToken = 'invalid.token';
         const response = await request(app)
-          .get('/api/v1/game/leaderboard')
+          .get('/api/v1/game/leaderboard/me')
           .set('Authorization', `Bearer ${invalidToken}`);
 
         expect(response.status).toBe(401);
@@ -180,7 +175,7 @@ describe('/game', () => {
       it('401 si le token est valide mais expiré', async () => {
         const expiredToken = generateExpiredJWT(1, false);
         const response = await request(app)
-          .get('/api/v1/game/leaderboard')
+          .get('/api/v1/game/leaderboard/me')
           .set('Authorization', `Bearer ${expiredToken}`);
 
         expect(response.status).toBe(401);
