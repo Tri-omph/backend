@@ -25,9 +25,9 @@ export enum TypeBin {
 }
 
 export enum ScanType {
-  QUESTIONS = 'Questions',
+  Barcode = 'Code barre',
   AI = 'IA',
-  BARCODE = 'Barcode',
+  Advanced = 'Avancée',
 }
 
 export const keyToEnum = <T extends Record<string, string | number>>(

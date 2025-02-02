@@ -27,17 +27,21 @@ export class ScanHistory {
   @Column({ default: false })
   isValid!: boolean;
 
+  // TODO: We need to find the exact form of the enum before using it
   @Column({
-    type: process.env.NODE_ENV === 'test' ? 'text' : 'enum',
-    enum: TypeBin,
+    type: 'text',
+    //type: process.env.NODE_ENV === 'test' ? 'text' : 'enum',
+    //enum: TypeBin,
   })
-  poubelle!: TypeBin;
+  poubelle!: string; //TypeBin;
 
+  // TODO: We need to find the exact form of the enum before using it
   @Column({
-    type: process.env.NODE_ENV === 'test' ? 'text' : 'enum',
-    enum: TypeDisposable,
+    type: 'text',
+    //type: process.env.NODE_ENV === 'test' ? 'text' : 'enum',
+    //enum: TypeDisposable,
   })
-  type!: TypeDisposable;
+  type!: string; //TypeDisposable;
 
   @CreateDateColumn()
   date!: Date;

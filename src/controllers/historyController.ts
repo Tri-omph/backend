@@ -57,6 +57,8 @@ const addCurrentHistory: RequestHandler = async (req, res) => {
       return;
     }
 
+    console.log(req.body);
+
     const { method, isValid, poubelle, type } = req.body;
     const customerId = res.locals.user.id;
 
