@@ -28,6 +28,10 @@ app.use(morgan('dev')); // Log requests in 'dev' format
 app.use(json()); // Parse incoming JSON requests
 app.use(urlencoded({ extended: true })); // Parse URL-encoded data
 
+app.get('/', (_req, res) => {
+  res.status(200).send('OK');
+});
+
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/scan', scanRoutes);

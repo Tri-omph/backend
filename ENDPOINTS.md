@@ -68,6 +68,7 @@ Authentifie un utilisateur en vérifiant son nom d'utilisateur ou adresse mail e
   "password": "examplePassword"
 }
 ```
+
 ```json
 {
   "login": "user@example.com",
@@ -217,6 +218,96 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
 - **401 Unauthorized** : Token JWT invalide ou expiré.
 - **403 Forbidden** : Token JWT avec droits insuffisants.
 - **422 Unprocessable Entity** : Erreur de formatage des entrées.
+
+---
+
+### **GET /users/history/me**
+
+#### **Description:**
+Récupère l'historique des scans de l'utilisateur actuellement authentifié en utilisant son token JWT.
+
+#### **En-têtes :**
+- **Authorization** : Bearer `your-jwt-token`
+
+#### **Réponses :**
+- **200 OK** : Historique récupéré avec succès.
+  ```json
+  [
+    {
+      "id": 1,
+      "method": "AI",
+      "isValid": true,
+      "poubelle": "bleu",
+      "type": "METAL PACKAGING",
+      "date": "2025-02-01T10:00:00Z"
+    },
+    {
+      "id": 2,
+      "method": "Barcode",
+      "isValid": false,
+      "poubelle": "compost",
+      "type": "ORGANIC",
+      "date": "2025-02-02T14:00:00Z"
+    }
+  ]
+  ```
+- **401 Unauthorized** : Token JWT invalide ou manquant.
+- **500 Internal Server Error** : Erreur du serveur lors de la récupération de l'historique.
+
+---
+
+### **POST /users/history/me**
+
+#### **Description:**
+Ajoute une nouvelle entrée à l'historique des scans de l'utilisateur actuellement authentifié. Utilise le token JWT de l'utilisateur pour vérifier son identité et ajoute un enregistrement dans l'historique.
+
+#### **En-têtes :**
+- **Authorization** : Bearer `your-jwt-token`
+
+#### **Corps de la requête :**
+```json
+{
+  "method": "AI",
+  "isValid": true,
+  "poubelle": "bleu",
+  "type": "METAL PACKAGING"
+}
+```
+
+#### **Réponses :**
+- **201 Created** : Historique ajouté avec succès.
+- **400 Bad Request** : Données de requête invalides.
+- **401 Unauthorized** : Token JWT invalide ou manquant.
+- **500 Internal Server Error** : Erreur du serveur lors de l'ajout de l'historique.
+
+---
+
+### **GET /users/history/:id**
+
+#### **Description:**
+Récupère l'historique des scans d'un utilisateur spécifique en fonction de son ID. Cette route est protégée et nécessite un token JWT valide pour s'assurer que l'utilisateur a les droits nécessaires.
+
+#### **En-têtes :**
+- **Authorization** : Bearer `your-jwt-token`
+
+#### **Réponses :**
+- **200 OK** : Historique récupéré avec succès pour l'utilisateur spécifié.
+  ```json
+  [
+    {
+      "id": 1,
+      "method": "Questions",
+      "isValid": true,
+      "poubelle": "jaune",
+      "type": "METAL PACKAGING",
+      "date": "2025-01-15T10:00:00Z"
+    }
+  ]
+  ```
+- **401 Unauthorized** : Token JWT invalide ou manquant.
+- **403 Forbidden** : L'utilisateur n'a pas les droits nécessaires pour accéder à l'historique de cet utilisateur.
+- **404 Not Found** : Utilisateur introuvable ou aucun historique trouvé.
+- **500 Internal Server Error** : Erreur du serveur lors de la récupération de l'historique.
 
 ---
 

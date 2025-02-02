@@ -22,6 +22,7 @@ const seedDatabase = async (dataSource: DataSource) => {
       restricted: false,
       admin: true,
       points: 0,
+      scanHistory: [],
     };
 
     const admin = customerRepository.create(mainAdmin);

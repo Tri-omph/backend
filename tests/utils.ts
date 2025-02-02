@@ -23,7 +23,7 @@ export const generateExpiredJWT = (id: number, admin: boolean) => {
     expiresIn: -60,
   };
 
-  return jwt.sign(payload, process.env.JWT_SECRET ?? '', options);
+  return jwt.sign(payload, process.env.JWT_SECRET ?? 'your-jwt-token', options);
 };
 
 export const resetDataSource = async () => {
