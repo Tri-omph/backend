@@ -19,5 +19,6 @@ router.patch('/free/:id', rateLimit, adminController.freeUser); // PATCH /api/v1
 router.use(mainAdminMiddleware); // Admin principal
 
 router.patch('/demote/:id', rateLimit, adminController.demoteUser); // PATCH /api/v1/admin/demote/:id
+router.post('/create', adminController.createAdmin); // POST /api/v1/admin/create
 
 export default router;

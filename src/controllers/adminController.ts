@@ -149,9 +149,12 @@ const freeUser: RequestHandler = async (req, res) => {
   }
 };
 
+const createAdmin: RequestHandler = (req, res) => {};
+
 export default {
   promoteUser,
   restrictUser,
   freeUser,
   demoteUser,
+  createAdmin,
 };
