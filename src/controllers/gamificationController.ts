@@ -21,7 +21,11 @@ const getLeaderboard: RequestHandler = async (req, res) => {
       .limit(limit)
       .getMany();
 
-    res.json(leaderboard);
+    res.json(
+      leaderboard.map((l) => {
+        return { username: l.username, points: l.points, id: l.id };
+      })
+    );
   } catch (err) {
     if (!isTest)
       console.error('Erreur lors de la récupération du leaderboard : ', err);

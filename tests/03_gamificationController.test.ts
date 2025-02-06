@@ -29,8 +29,8 @@ beforeAll(async () => {
 });
 
 describe('/game', () => {
-  let users: { username: string; points: number }[],
-    usersSorted: { username: string; points: number }[];
+  let users: { username: string; points: number; id: number }[],
+    usersSorted: { username: string; points: number; id: number }[];
 
   describe('POST /game/leaderboard', () => {
     beforeEach(async () => {
@@ -42,23 +42,26 @@ describe('/game', () => {
       if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
       users = [
-        { username: 'third', points: 8000 },
-        { username: 'second', points: 9000 },
-        { username: 'sixth', points: 5000 },
-        { username: 'tenth', points: 1000 },
-        { username: 'ninth', points: 2000 },
-        { username: 'fifth', points: 6000 },
-        { username: 'fourth', points: 7000 },
-        { username: 'seventh', points: 4000 },
-        { username: 'first', points: 10000 },
-        { username: 'eighth', points: 3000 },
+        { username: 'third', points: 8000, id: 0 },
+        { username: 'second', points: 9000, id: 0 },
+        { username: 'sixth', points: 5000, id: 0 },
+        { username: 'tenth', points: 1000, id: 0 },
+        { username: 'ninth', points: 2000, id: 0 },
+        { username: 'fifth', points: 6000, id: 0 },
+        { username: 'fourth', points: 7000, id: 0 },
+        { username: 'seventh', points: 4000, id: 0 },
+        { username: 'first', points: 10000, id: 0 },
+        { username: 'eighth', points: 3000, id: 0 },
       ];
 
       usersSorted = Array.from(users);
       usersSorted.sort((a, b) => b.points - a.points);
 
       await Promise.all(
-        users.map(async (el) => addCustomer(el.username, el.points))
+        users.map(async (el, i) => {
+          const custo = await addCustomer(el.username, el.points);
+          users[i].id = custo.id;
+        })
       );
     });
 
@@ -73,6 +76,7 @@ describe('/game', () => {
         for (let i = 0; i < 10; i++) {
           expect(leaderboard[i].username).toBe(usersSorted[i].username);
           expect(leaderboard[i].points).toBe(usersSorted[i].points);
+          expect(leaderboard[i].id).toBe(usersSorted[i].id);
         }
       });
 
