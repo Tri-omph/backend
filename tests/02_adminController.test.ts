@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { hash, compare } from 'bcrypt';
+import { hash } from 'bcrypt';
 
 import app from '../src/app';
 import { Customer } from '../src/models/Customer';
@@ -71,8 +71,8 @@ describe('/admin', () => {
       userToken: string,
       adminToken: string,
       id: number,
-      id2: number,
-      checkUser: (c: Customer) => Promise<boolean>;
+      id2: number;
+    // checkUser: (c: Customer) => Promise<boolean>;
 
     beforeAll(async () => {
       user = generateUser(false, false);
@@ -81,11 +81,11 @@ describe('/admin', () => {
       user2 = generateUser(true, false);
       const admin = await generateCustomer(user2);
 
-      checkUser = async (c: Customer) =>
-        c.username === user.username &&
-        c.login === user.password &&
-        (await compare(user.password, c.pwd_hash)) &&
-        c.id === id;
+      // checkUser = async (c: Customer) =>
+      //   c.username === user.username &&
+      //   c.login === user.password &&
+      //   (await compare(user.password, c.pwd_hash)) &&
+      //   c.id === id;
 
       if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
@@ -255,8 +255,8 @@ describe('/admin', () => {
       mainadminToken: string,
       id: number,
       id2: number,
-      id3: number,
-      checkUser: (c: Customer) => Promise<boolean>;
+      id3: number;
+    // checkUser: (c: Customer) => Promise<boolean>;
 
     beforeAll(async () => {
       user = generateUser(false, false);
@@ -268,11 +268,11 @@ describe('/admin', () => {
       user3 = generateUser(false, true);
       const restrict = await generateCustomer(user3);
 
-      checkUser = async (c: Customer) =>
-        c.username === user.username &&
-        c.login === user.password &&
-        (await compare(user.password, c.pwd_hash)) &&
-        c.id === id;
+      // checkUser = async (c: Customer) =>
+      //   c.username === user.username &&
+      //   c.login === user.password &&
+      //   (await compare(user.password, c.pwd_hash)) &&
+      //   c.id === id;
 
       if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
@@ -475,8 +475,8 @@ describe('/admin', () => {
       adminToken: string,
       id: number,
       id2: number,
-      id3: number,
-      checkUser: (c: Customer) => Promise<boolean>;
+      id3: number;
+    // checkUser: (c: Customer) => Promise<boolean>;
 
     beforeAll(async () => {
       user = generateUser(false, true);
@@ -488,11 +488,11 @@ describe('/admin', () => {
       user3 = generateUser(false, false);
       const notrestrict = await generateCustomer(user3);
 
-      checkUser = async (c: Customer) =>
-        c.username === user.username &&
-        c.login === user.password &&
-        (await compare(user.password, c.pwd_hash)) &&
-        c.id === id;
+      // checkUser = async (c: Customer) =>
+      //   c.username === user.username &&
+      //   c.login === user.password &&
+      //   (await compare(user.password, c.pwd_hash)) &&
+      //   c.id === id;
 
       if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
@@ -659,8 +659,8 @@ describe('/admin', () => {
       adminToken: string,
       mainadminToken: string,
       id: number,
-      id2: number,
-      checkUser: (c: Customer) => Promise<boolean>;
+      id2: number;
+    // checkUser: (c: Customer) => Promise<boolean>;
 
     beforeAll(async () => {
       user = generateUser(false, false);
@@ -669,11 +669,11 @@ describe('/admin', () => {
       user2 = generateUser(true, false);
       const admin = await generateCustomer(user2);
 
-      checkUser = async (c: Customer) =>
-        c.username === user.username &&
-        c.login === user.password &&
-        (await compare(user.password, c.pwd_hash)) &&
-        c.id === id;
+      // checkUser = async (c: Customer) =>
+      //   c.username === user.username &&
+      //   c.login === user.password &&
+      //   (await compare(user.password, c.pwd_hash)) &&
+      //   c.id === id;
 
       if (!AppDataSource.isInitialized) await AppDataSource.initialize();
 
@@ -834,7 +834,7 @@ describe('/admin', () => {
         expect(response.status).toBe(409);
         expect(response.body).toHaveProperty(
           'message',
-          'This user is not an admin'
+          'This user is the mainadmin'
         );
       });
     });

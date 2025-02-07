@@ -31,7 +31,7 @@ const getCurrentHistory: RequestHandler = async (_req, res) => {
     const customer = await customerRepository.findOneBy({ id: customerId });
 
     if (!customer) {
-      res.status(404).json({ message: 'Utilisateur non trouvé' });
+      res.status(404).json({ message: 'Utilisateur non trouvé.' });
       return;
     }
 

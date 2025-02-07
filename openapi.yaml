@@ -486,6 +486,115 @@ paths:
         '409':
           description: Utilisateur non restreint.
 
+  /metrics/scaninfo:
+    get:
+      summary: Récupérer les informations de scan globales
+      description: Renvoie les statistiques globales des scans effectués par tous les utilisateurs.
+      responses:
+        '200':
+          description: Statistiques globales récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanHistory"
+        '401':
+          description: Non autorisé, token JWT invalide ou manquant.
+
+  /metrics/scaninfo/me:
+    get:
+      summary: Récupérer les informations de scan de l'utilisateur actuel
+      description: Renvoie les statistiques des scans effectués par l'utilisateur authentifié.
+      responses:
+        '200':
+          description: Statistiques de l'utilisateur récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanHistory"
+        '401':
+          description: Non autorisé, token JWT invalide ou manquant.
+
+  /metrics/scaninfo/{id}:
+    get:
+      summary: Récupérer les informations de scan d'un utilisateur spécifique
+      description: Renvoie les statistiques des scans d'un utilisateur spécifique (admin requis).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur.
+      responses:
+        '200':
+          description: Statistiques de l'utilisateur récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanHistory"
+        '401':
+          description: Non autorisé, token JWT invalide ou manquant.
+        '404':
+          description: Utilisateur non trouvé.
+
+  /metrics/bins:
+    get:
+      summary: Récupérer les statistiques globales des poubelles utilisées
+      description: Renvoie les statistiques sur les types de poubelles les plus utilisées.
+      responses:
+        '200':
+          description: Statistiques des poubelles récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: number
+        '401':
+          description: Non autorisé, token JWT invalide ou manquant.
+
+  /metrics/bins/me:
+    get:
+      summary: Récupérer les statistiques personnelles des poubelles utilisées
+      description: Renvoie les statistiques sur les types de poubelles utilisées par l'utilisateur authentifié.
+      responses:
+        '200':
+          description: Statistiques personnelles des poubelles récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: number
+        '401':
+          description: Non autorisé, token JWT invalide ou manquant.
+
+  /metrics/bins/{id}:
+    get:
+      summary: Récupérer les statistiques des poubelles d'un utilisateur spécifique
+      description: Renvoie les statistiques sur les types de poubelles utilisées par un utilisateur spécifique (admin requis).
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID de l'utilisateur.
+      responses:
+        '200':
+          description: Statistiques des poubelles récupérées avec succès.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: number
+        '401':
+          description: Non autorisé, token JWT invalide ou manquant.
+        '404':
+          description: Utilisateur non trouvé.
+
+
 components:
   securitySchemes:
     BearerAuth:
@@ -494,6 +603,30 @@ components:
       bearerFormat: JWT
 
   schemas:
+    MetricsScan:
+      type: object
+      properties:
+        ai:
+          type: object
+          properties:
+            total:
+              type: integer
+            correct:
+              type: integer
+        barcode:
+          type: object
+          properties:
+            total:
+              type: integer
+            correct:
+              type: integer
+        questions:
+          type: object
+          properties:
+            total:
+              type: integer
+            correct:
+              type: integer
     ScanHistory:
       type: object
       properties:
