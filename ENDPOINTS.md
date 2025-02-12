@@ -247,7 +247,8 @@ Récupère l'historique des scans de l'utilisateur actuellement authentifié en 
       "isValid": false,
       "poubelle": "compost",
       "type": "ORGANIC",
-      "date": "2025-02-02T14:00:00Z"
+      "date": "2025-02-02T14:00:00Z",
+      "image": "<blob of the image>"
     }
   ]
   ```
@@ -270,7 +271,8 @@ Ajoute une nouvelle entrée à l'historique des scans de l'utilisateur actuellem
   "method": "AI",
   "isValid": true,
   "poubelle": "bleu",
-  "type": "METAL PACKAGING"
+  "type": "METAL PACKAGING",
+  "image": "<blob of the image>"
 }
 ```
 
@@ -300,7 +302,8 @@ Récupère l'historique des scans d'un utilisateur spécifique en fonction de so
       "isValid": true,
       "poubelle": "jaune",
       "type": "METAL PACKAGING",
-      "date": "2025-01-15T10:00:00Z"
+      "date": "2025-01-15T10:00:00Z",
+      "image": "<blob of the image>"
     }
   ]
   ```

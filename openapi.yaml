@@ -513,6 +513,29 @@ components:
           type: string
           format: date-time
           example: '2025-02-02T12:34:56.789Z'
+        image:
+          nullable: true
+          type: string
+          format: binary
+          description: Image du scan (optionnel).
+
+    NewScanHistory:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/ScanType'
+        isValid:
+          type: boolean
+          example: true
+        poubelle:
+          $ref: '#/components/schemas/TypeBin'
+        disposableType:
+          $ref: '#/components/schemas/TypeDisposable'
+        image:
+          nullable: true
+          type: string
+          format: binary
+          description: Image du scan (optionnel).
 
     ScanType:
       type: string

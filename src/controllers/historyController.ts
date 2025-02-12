@@ -3,6 +3,7 @@ import { AppDataSource } from '../database/data-source';
 import { Customer } from '../models/Customer';
 import { isTest } from '../app';
 import { ScanHistory } from '../models/ScanHistory';
+import { Buffer } from 'buffer';
 
 const getScanHistoryByCustomerId = async (
   customerId: number
@@ -57,11 +58,19 @@ const addCurrentHistory: RequestHandler = async (req, res) => {
       return;
     }
 
-    const { method, isValid, poubelle, type } = req.body;
+    const { method, isValid, poubelle, type, image } = req.body;
     const customerId = res.locals.user.id;
 
-    if (!method || isValid === undefined || !poubelle || !type) {
-      res.status(400).json({ message: 'Tous les champs sont requis.' });
+    if (
+      !method ||
+      isValid === undefined ||
+      !poubelle ||
+      !type ||
+      (image !== undefined && !Buffer.isBuffer(image))
+    ) {
+      res
+        .status(400)
+        .json({ message: 'Tous les champs sont requis (sauf image).' });
       return;
     }
 
@@ -81,6 +90,7 @@ const addCurrentHistory: RequestHandler = async (req, res) => {
       poubelle,
       type,
       date: new Date(),
+      image: image ?? null,
     });
 
     await historyRepository.save(newHistory);

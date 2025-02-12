@@ -41,4 +41,7 @@ export class ScanHistory {
 
   @CreateDateColumn()
   date!: Date;
+
+  @Column({ type: 'blob', nullable: true })
+  image!: Buffer;
 }
