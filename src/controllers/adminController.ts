@@ -2,6 +2,9 @@ import { RequestHandler } from 'express';
 
 import { Customer } from '../models/Customer';
 import { AppDataSource } from '../database/data-source';
+import { passwordRegex, verifyEmail } from '../utils';
+import { randomBytes } from 'crypto';
+import { hash } from 'bcrypt';
 
 const customerRepository = AppDataSource.getRepository(Customer);
 
@@ -149,7 +152,72 @@ const freeUser: RequestHandler = async (req, res) => {
   }
 };
 
-const createAdmin: RequestHandler = (req, res) => {};
+const createAdmin: RequestHandler = async (req, res) => {
+  if (!res.locals.user) {
+    res.status(401).json({ message: 'Authentification requise.' });
+    return;
+  }
+
+  const { email } = req.body;
+  if (!email) {
+    res.status(400).json({ message: 'Adresse email requis.' });
+    return;
+  }
+
+  if (!verifyEmail(email)) {
+    res.status(422).json({ message: 'Adresse email invalide.' });
+    return;
+  }
+
+  let password = randomBytes(length).toString('base64').slice(0, length);
+  while (!passwordRegex.test(password))
+    password = randomBytes(length).toString('base64').slice(0, length);
+
+  const customerRepository = AppDataSource.getRepository(Customer);
+
+  try {
+    const existingEmail = await customerRepository.findOneBy({
+      login: email.toLowerCase(),
+    });
+    if (existingEmail) {
+      res.status(409).json({ message: "L'email existe déjà." });
+      return;
+    }
+
+    const existingUsers = await customerRepository
+      .createQueryBuilder()
+      .where("username LIKE 'admin%'")
+      .getMany();
+
+    const usernamesSuffix = existingUsers
+      .map((c) => c.username.slice(5))
+      .filter((c) => !isNaN(Number(c)))
+      .map((c) => parseInt(c))
+      .sort((a, b) => a - b);
+
+    let i = 0;
+    while (usernamesSuffix[i] === i) i++;
+    const username = `admin${i}`;
+
+    const hashedPassword = await hash(password, 10);
+
+    const newCustomer = customerRepository.create({
+      username: username,
+      login: email.toLowerCase(),
+      pwd_hash: hashedPassword,
+    });
+
+    await customerRepository.save(newCustomer);
+
+    res.status(201).json({
+      message: 'Utilisateur créé avec succès.',
+      username,
+      password,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur de serveur interne.' });
+  }
+};
 
 export default {
   promoteUser,
