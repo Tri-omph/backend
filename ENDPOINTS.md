@@ -221,32 +221,28 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
 
 ---
 
-### POST /scan/barcode
+### GET /scan/barcode
 
 #### Description :
 
-Accepte un code-barres et renvoie le résultat de la reconnaissance. **TODO: Voir avec le frontend**
+Accepte un code-barres en paramètre et renvoie le résultat de la reconnaissance.
 
-#### Corps de la requête :
+#### Paramètres de requête :
 
-```json
-{}
-```
+- `barcode` (string, requis) : Le code-barres du produit à scanner.
 
 #### Réponses :
 
-- **200 OK** : Scan traité avec succès, renvoie les résultats de la reconnaissance.
-  ```json
-  {}
-  ```
-- **400 Bad Request** : Données de scan invalides.
+- **200 OK** : Scan traité avec succès, retourne les résultats de reconnaissance.
   ```json
   {
-    "error": true,
-    "message": "Données de scan invalides."
+    "productFound": true,
+    "productPackagingMaterial": "plastic"
   }
   ```
-- **429 Too Many Requests** : Vous avez dépassé la limite de requêtes. Veuillez réessayer plus tard.
+- **400 Bad Request** : Code-barres manquant ou invalide.
+- **404 Not Found** : Produit non trouvé.
+- **500 Internal Server Error** : Erreur interne du serveur.
 
 ---
 

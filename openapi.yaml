@@ -201,18 +201,16 @@ paths:
           description: Paramètres de recherche invalides.
 
   /scan/barcode:
-    post:
+    get:
       summary: Scanner et traiter un article de déchet
-      description: Accepte un code-barres et retourne le résultat de la reconnaissance.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                type: number
-                description: Le code-barres.
+      description: Accepte un code-barres en tant que paramètre de requête et retourne les résultats de reconnaissance.
+      parameters:
+        - in: query
+          name: barcode
+          required: true
+          schema:
+            type: string
+          description: Le code-barres du produit à scanner.
       responses:
         '200':
           description: Scan traité avec succès, retourne les résultats de reconnaissance.
@@ -221,12 +219,18 @@ paths:
               schema:
                 type: object
                 properties:
-                  item:
-                    type: string # À déterminer avec le frontend
+                  productFound:
+                    type: boolean
+                    description: Indique si le produit a été trouvé.
+                  productPackagingMaterial:
+                    type: string
+                    description: Matériau d'emballage du produit.
         '400':
           description: Données de scan invalides.
-        '429':
-          description: Trop de requêtes. Vous avez dépassé la limite de taux. Veuillez réessayer plus tard.
+        '404':
+          description: Produit non trouvé.
+        '500':
+          description: Erreur interne du serveur.
 
   /scan/image:
     post:
