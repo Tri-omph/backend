@@ -19,7 +19,7 @@ import {
  * Fonction pour créer un nouvel utilisateur
  */
 const createUser: RequestHandler = async (req, res) => {
-  const { username, password, email } = req.body;
+  const { username, password, email, saveImage } = req.body;
 
   if (!usernameRegex.test(username)) {
     res.status(422).json({
@@ -28,7 +28,7 @@ const createUser: RequestHandler = async (req, res) => {
     return;
   }
 
-  if (!username || !email || !password) {
+  if (!username || !email || !password || saveImage === undefined) {
     res.status(400).json({
       message: 'Tous les champs sont requis.',
     });
@@ -73,6 +73,7 @@ const createUser: RequestHandler = async (req, res) => {
       username: username,
       login: email.toLowerCase(),
       pwd_hash: hashedPassword,
+      saveImage: saveImage === true,
     });
 
     await customerRepository.save(newCustomer);
@@ -168,9 +169,9 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    const { username, email, password } = req.body;
+    const { username, email, password, saveImage } = req.body;
 
-    if (!username && !email && !password) {
+    if (!username && !email && !password && saveImage === undefined) {
       res.status(400).json({ message: 'Aucune modification indiquée.' });
       return;
     }
@@ -230,6 +231,15 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
       customer.pwd_hash = await bcrypt.hash(password, 10);
     }
 
+    if (saveImage !== customer.saveImage) {
+      if (!(saveImage === true || saveImage === false)) {
+        res.status(422).json({ message: 'Pseudonyme invalide.' });
+        return;
+      }
+
+      customer.saveImage = saveImage;
+    }
+
     await customerRepository.save(customer);
 
     res.status(200).json({
@@ -282,6 +292,7 @@ export interface UserFilter {
   login: string;
   restricted: boolean;
   admin: boolean;
+  saveImage: boolean;
 }
 
 const findUser: RequestHandler = async (req, res) => {
@@ -293,6 +304,7 @@ const findUser: RequestHandler = async (req, res) => {
     login,
     restricted,
     admin,
+    saveImage,
   }: Record<keyof UserFilter, unknown> = req.body;
   // TODO: changer de params à query, donc de POST à GET
 
@@ -370,7 +382,7 @@ const findUser: RequestHandler = async (req, res) => {
         return;
       }
       query = query.andWhere('customer.points <= :pointsMax', {
-        pointsMax: pointsMax,
+        pointsMax,
       });
     }
 
@@ -383,6 +395,16 @@ const findUser: RequestHandler = async (req, res) => {
         .status(422)
         .send({ message: 'Le minimum est plus grand que le maximum.' });
       return;
+    }
+
+    if (saveImage !== undefined) {
+      if (typeof saveImage !== 'boolean') {
+        res.status(422).send({ message: 'pointsMax invalide.' });
+        return;
+      }
+      query = query.andWhere('customer.saveImage = :saveImage', {
+        saveImage,
+      });
     }
 
     const customers = await query.getMany();
