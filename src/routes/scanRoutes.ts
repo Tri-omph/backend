@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import scanController from '../controllers/scanController';
-import { rateLimiter } from '../middlewares/rateLimiter';
 
 // Ce fichier définit les routes de l'application. Il est responsable de gérer les chemins d'URL
 // qui pointent vers des actions spécifiques dans le contrôleur. Ici, nous avons les routes liées aux utilisateurs,
@@ -13,21 +12,9 @@ const SECONDE = 1000;
 const MINUTE = 60 * SECONDE;
 const HEURE = 60 * MINUTE;
 
-router.post(
-  '/scan/barcode',
-  rateLimiter(3, MINUTE),
-  scanController.processBarcodeScan
-); //POST /scan/barcode
-router.post(
-  '/scan/image',
-  rateLimiter(15, MINUTE),
-  scanController.processImageScan
-); //POST /scan/image
+router.post('/scan/barcode', scanController.processBarcodeScan); //POST /scan/barcode
+router.post('/scan/image', scanController.processImageScan); //POST /scan/image
 
-router.post(
-  '/waste-info',
-  rateLimiter(50, HEURE),
-  scanController.submitWasteInfo
-); // POST /waste-info
+router.post('/waste-info', scanController.submitWasteInfo); // POST /waste-info
 
 export default router;
