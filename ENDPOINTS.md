@@ -464,6 +464,38 @@ Lever les restrictions imposées à un utilisateur avec l'ID indiqué.
 
 ---
 
+### POST /admin/create
+
+#### Description :
+
+Crée une nouvelle entrée dans la base de données à partir d'un email.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Corps de la requête :
+
+```json
+{
+  "email": "email.de.ladmin@gmail.com"
+}
+```
+
+#### Réponses :
+
+- **201 Created** : Administrateur créé avec succès.
+  ```json
+  {
+    "message": "Administrateur créé avec succès."
+  }
+  ```
+- **400 Bad Request** : Adresse email requise.
+- **409 Conflict** : L'email existe déjà.
+- **422 Unprocessable Entity** : Adresse email invalide.
+
+---
+
 ## Codes de Réponse
 
 - **200 OK** : La requête a été réussie et la réponse contient les données demandées.

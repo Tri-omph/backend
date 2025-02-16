@@ -160,7 +160,7 @@ const createAdmin: RequestHandler = async (req, res) => {
 
   const { email } = req.body;
   if (!email) {
-    res.status(400).json({ message: 'Adresse email requis.' });
+    res.status(400).json({ message: 'Adresse email requise.' });
     return;
   }
 
@@ -210,7 +210,7 @@ const createAdmin: RequestHandler = async (req, res) => {
     await customerRepository.save(newCustomer);
 
     res.status(201).json({
-      message: 'Utilisateur créé avec succès.',
+      message: 'Administrateur créé avec succès.',
       username,
       password,
     });

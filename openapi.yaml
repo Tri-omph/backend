@@ -417,6 +417,29 @@ paths:
         '409':
           description: Utilisateur non restreint.
 
+  /admin/create:
+    post:
+      summary: Crée un nouvel utilisateur admin
+      description: Crée une nouvelle entrée dans la base de données à partir d'un email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '201':
+          description: Administrateur créé avec succès.
+        '400':
+          description: Adresse email requise.
+        '409':
+          description: L'email existe déjà.
+        '422':
+          description: Adresse email invalide.
+
 components:
   securitySchemes:
     BearerAuth:
