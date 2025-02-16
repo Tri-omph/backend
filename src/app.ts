@@ -8,6 +8,7 @@ dotenv.config();
 import errorHandler from './middlewares/errorHandler';
 import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes';
+import scanRoutes from './routes/scanRoutes';
 import { AppDataSource } from './database/data-source';
 import { seedDatabase } from './database/seed/mainSeeder';
 
@@ -30,6 +31,7 @@ app.get('/', (_req, res) => {
 
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/scan', scanRoutes);
 
 app.use(errorHandler); // Gère les erreurs (voir src/middleware/ErrorHandler.ts). À laisser APRÈS les routes
 

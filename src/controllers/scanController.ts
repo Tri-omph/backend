@@ -2,17 +2,20 @@ import { Request, Response } from 'express';
 import { isTest } from '../app';
 
 const processBarcodeScan = async (req: Request, res: Response) => {
-  const barcodeData = req.body.barcode;
+  const { barcode } = req.query; // Extraire le barcode de l'URL
 
-  if (!barcodeData) {
-    res
-      .status(400)
-      .json({ error: true, message: 'Données de scan invalides.' });
+  if (!barcode) {
+    res.status(400).json({ error: 'Le codebarre est requis !' });
     return;
   }
 
   try {
-    const result = await recognizeBarcode(barcodeData);
+    const result = await getProductInfo(barcode.toString());
+
+    if (!result.productFound) {
+      res.status(404).json({ error: 'Produit non trouvé !' });
+      return;
+    }
 
     res.status(200).json(result);
   } catch (error) {
@@ -23,15 +26,56 @@ const processBarcodeScan = async (req: Request, res: Response) => {
   }
 };
 
-const recognizeBarcode = async (barcodeData: string) => {
-  //Exemple
-  return {
-    barcode: barcodeData,
-    productName: 'Example Product',
-    price: 19.99,
-  };
+const removePrefix = (str: string): string => {
+  return str.startsWith('en:') ? str.substring(3) : str;
+};
 
-  //TODO look for the code in the database
+const materialMapping: { [key: string]: string } = {
+  'pet-1-polyethylene-terephthalate': 'plastic',
+  'pp-5-polypropylene': 'plastic',
+  'hdpe-2-high-density-polyethylene': 'plastic',
+};
+
+const fromScientificToCommon = (englishMaterial: string): string => {
+  return materialMapping[englishMaterial.toLowerCase()] || englishMaterial;
+};
+
+const getProductInfo = async (
+  barcode: string
+): Promise<{
+  productFound: boolean;
+  productPackagingMaterial: string;
+}> => {
+  try {
+    const response = await fetch(
+      `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
+    );
+    const data = await response.json();
+
+    if (data.status === 1) {
+      const product = data.product;
+      const packagingMaterials = product.packaging_materials_tags || [
+        'Informations non disponibles',
+      ];
+      return {
+        productFound: true,
+        productPackagingMaterial: fromScientificToCommon(
+          removePrefix(packagingMaterials[0])
+        ),
+      }; // Produit trouvé
+    } else {
+      return {
+        productFound: false,
+        productPackagingMaterial: 'Produit non trouvé dans la base de données.',
+      }; // Produit non trouvé
+    }
+  } catch (error) {
+    return {
+      productFound: false,
+      productPackagingMaterial:
+        'Erreur lors de la récupération des informations.',
+    }; // Erreur réseau ou autre
+  }
 };
 
 const processImageScan = async (req: Request, res: Response) => {

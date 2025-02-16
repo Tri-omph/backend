@@ -12,8 +12,8 @@ const SECONDE = 1000;
 const MINUTE = 60 * SECONDE;
 const HEURE = 60 * MINUTE;
 
-router.post('/scan/barcode', scanController.processBarcodeScan); //POST /scan/barcode
-router.post('/scan/image', scanController.processImageScan); //POST /scan/image
+router.get('/barcode', scanController.processBarcodeScan); //POST /scan/barcode
+router.post('/image', scanController.processImageScan); //POST /scan/image
 
 router.post('/waste-info', scanController.submitWasteInfo); // POST /waste-info
 
