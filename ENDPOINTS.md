@@ -35,7 +35,8 @@ Crée un nouveau compte utilisateur, vérifie l'unicité du nom d'utilisateur et
 {
   "username": "newUser",
   "password": "newPassword",
-  "email": "newuser@example.com"
+  "email": "newuser@example.com",
+  "saveImage": true
 }
 ```
 
@@ -128,7 +129,9 @@ Met à jour le profil de l'utilisateur actuel, par exemple son email ou son nom 
 ```json
 {
   "email": "updatedemail@example.com",
-  "username": "updatedUsername"
+  "username": "updatedUsername",
+  "password": "myN3wPassword!",
+  "saveImage": false
 }
 ```
 
@@ -194,7 +197,8 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
   "pointsMax": 200,
   "login": "example@example.com",
   "restricted": false,
-  "admin": true
+  "admin": true,
+  "saveImage": false
 }
 ```
 

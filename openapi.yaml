@@ -28,6 +28,8 @@ paths:
                   type: string
                 email:
                   type: string
+                saveImage:
+                  type: boolean
       responses:
         '201':
           description: Utilisateur créé avec succès, retourne un token JWT.
@@ -106,6 +108,10 @@ paths:
                   type: string
                 username:
                   type: string
+                password:
+                  type: string
+                saveImage:
+                  type: boolean
       responses:
         '200':
           description: Informations de l'utilisateur mises à jour avec succès.
@@ -170,6 +176,8 @@ paths:
                 restricted:
                   type: boolean
                 admin:
+                  type: boolean
+                saveImage:
                   type: boolean
       responses:
         '200':
