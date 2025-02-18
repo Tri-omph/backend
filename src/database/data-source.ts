@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { Customer } from '../models/Customer';
+import { ScanHistory } from '../models/ScanHistory';
 import * as mysql from 'mysql2';
 
 let AppDataSource: DataSource;
@@ -8,7 +9,7 @@ if (process.env.NODE_ENV === 'test') {
   const TestDataSource = new DataSource({
     type: 'sqlite',
     database: ':memory:',
-    entities: [Customer],
+    entities: [Customer, ScanHistory],
     synchronize: true,
     logging: false,
   });
@@ -23,7 +24,7 @@ if (process.env.NODE_ENV === 'test') {
     database: process.env.DB_NAME ?? 'test_db',
     synchronize: true, // TODO Fix CI with synchronize false
     logging: true,
-    entities: [Customer],
+    entities: [Customer, ScanHistory],
     migrations: ['src/database/migrations/*.ts'],
     driver: mysql,
     extra: {

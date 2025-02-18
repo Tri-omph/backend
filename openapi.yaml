@@ -139,8 +139,6 @@ paths:
                     type: string
                   points:
                     type: integer
-                  gametype:
-                    type: string
                   restricted:
                     type: boolean
                   admin:
@@ -167,8 +165,6 @@ paths:
                   type: integer
                 pointsMax:
                   type: integer
-                gametype:
-                  type: string
                 login:
                   type: string
                 restricted:
@@ -191,14 +187,87 @@ paths:
                       type: string
                     points:
                       type: integer
-                    gametype:
-                      type: string
                     restricted:
                       type: boolean
                     admin:
                       type: boolean
         '400':
           description: Paramètres de recherche invalides.
+
+  /users/history/me:
+    get:
+      summary: Récupère l'historique de l'utilisateur actuel.
+      description: Récupère l'historique de l'utilisateur authentifié.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Historique récupéré.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScanHistory'
+        '401':
+          description: 'Authentification requise ou token invalide ou expiré.'
+        '404':
+          description: 'Utilisateur non trouvé.'
+        '500':
+          description: 'Erreur interne.'
+    post:
+      summary: Ajoute une nouvelle entrée.
+      description: Ajoute une nouvelle entrée dans l'historique de l'utilisateur authentifié.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewScanHistory'
+      responses:
+        '201':
+          description: Scan history successfully added.
+        '400':
+          description: Tous les champs sont requis.
+        '401':
+          description: Authenthification requise.
+        '404':
+          description: Utilisateur introuvable.
+        '500':
+          description: Erreur interne.
+
+  /users/history/{id}:
+    get:
+      summary: Récupère l'historique d'un utilisateur (Administrateur)
+      description: Récupère l'historique d'un utilisateur par ID. Demande les privilèges admin.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'ID de l'utilisateur dont on veut.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Historique récupéré.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScanHistory"
+        "401":
+          description: Authentification requise.
+        "404":
+          description: Utilisateur introuvable.
+        "422":
+          description: ID non numérique.
+        "500":
+          description: Erreur interne.
 
   /scan/barcode:
     get:
@@ -427,6 +496,88 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  schemas:
+    ScanHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        method:
+          $ref: '#/components/schemas/ScanType'
+        isValid:
+          type: boolean
+          example: true
+        poubelle:
+          $ref: '#/components/schemas/TypeBin'
+        disposableType:
+          $ref: '#/components/schemas/TypeDisposable'
+        date:
+          type: string
+          format: date-time
+          example: '2025-02-02T12:34:56.789Z'
+        image:
+          nullable: true
+          type: string
+          format: binary
+          description: Image du scan (optionnel).
+
+    NewScanHistory:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/ScanType'
+        isValid:
+          type: boolean
+          example: true
+        poubelle:
+          $ref: '#/components/schemas/TypeBin'
+        disposableType:
+          $ref: '#/components/schemas/TypeDisposable'
+        image:
+          nullable: true
+          type: string
+          format: binary
+          description: Image du scan (optionnel).
+
+    ScanType:
+      type: string
+      enum:
+        - Questions
+        - IA
+        - Barcode
+      example: 'Barcode'
+
+    TypeBin:
+      type: string
+      enum:
+        - rouge
+        - jaune
+        - bleu
+        - orange
+        - compost
+      example: 'jaune'
+
+    TypeDisposable:
+      type: string
+      enum:
+        - PLASTIC PACKAGING
+        - CARDBOARD PACKAGING
+        - PAPER
+        - GLASS PACKAGING
+        - METAL PACKAGING
+        - USED
+        - DAMAGED
+        - DISHES
+        - ORGANIC
+        - NOT PACKAGING
+        - MEDICINE
+        - TOXIC
+        - DEVICE
+        - TEXTILE
+        - BULKY WASTE
+      example: 'PLASTIC PACKAGING'
 
 security:
   - BearerAuth: []

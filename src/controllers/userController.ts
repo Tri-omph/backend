@@ -151,7 +151,7 @@ const getCurrentUser: RequestHandler = async (_req, res) => {
     res.status(200).json(customer);
   } catch (error) {
     if (!isTest)
-      console.error('Erreur lors de la récupération de l utilisateur:', error);
+      console.error("Erreur lors de la récupération de l'utilisateur:", error);
     res.status(500).json({ message: 'Erreur de serveur' });
   }
 };
