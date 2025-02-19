@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middlewares/authenticate';
 import scanController from '../controllers/scanController';
 
 // Ce fichier définit les routes de l'application. Il est responsable de gérer les chemins d'URL
@@ -11,6 +12,8 @@ const router = Router();
 const SECONDE = 1000;
 const MINUTE = 60 * SECONDE;
 const HEURE = 60 * MINUTE;
+
+router.use(authMiddleware);
 
 router.get('/barcode', scanController.processBarcodeScan); //POST /scan/barcode
 router.post('/image', scanController.processImageScan); //POST /scan/image
