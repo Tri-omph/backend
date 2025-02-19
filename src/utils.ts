@@ -1,5 +1,6 @@
 import { sign } from 'jsonwebtoken';
 import { JWT_EXPIRATION } from './constants';
+import { TypeDisposable } from './types/enums';
 
 /**
  * Vérifie si une chaîne respecte les contraintes d'un email valide selon RFC 5322 :
@@ -54,3 +55,42 @@ export const generateJWT = (id: number, admin: boolean) =>
   sign({ id, admin }, process.env.JWT_SECRET ?? 'your_secret_key', {
     expiresIn: JWT_EXPIRATION,
   });
+
+// Define synonyms for each type
+export const trashTypeSynonyms: { [key: string]: string[] } = {
+  paper: ['papier', 'paper'],
+  plastic: ['plastique', 'plastic'],
+  cardboard: ['carton', 'cardboard'],
+  glass: ['verre', 'glass'],
+  metal: ['métal', 'metal'],
+  textile: ['textile'],
+  used: ['ordure', 'trash'],
+  device: ['pile', 'batterie', 'appareil', 'battery'],
+  organic: ['organique', 'nourriture', 'aliment', 'organic'],
+  damaged: ['endommagé', 'damaged'],
+  dishes: ['vaisselle', 'dishes'],
+  not_packaging: ['non_emballage', 'not packaging'],
+  medicine: ['médicament', 'medicine'],
+  toxic: ['toxique', 'toxic'],
+  bulky_waste: ['encombrant', 'bulky waste'],
+};
+
+export const trashTypeMapping: { [key: string]: TypeDisposable } = {
+  paper: TypeDisposable.PAPER,
+  plastic: TypeDisposable.PLASTIC_PACKAGING,
+  cardboard: TypeDisposable.CARDBOARD_PACKAGING,
+  glass: TypeDisposable.GLASS_PACKAGING,
+  metal: TypeDisposable.METAL_PACKAGING,
+  used: TypeDisposable.USED,
+  damaged: TypeDisposable.DAMAGED,
+  dishes: TypeDisposable.DISHES,
+  organic: TypeDisposable.ORGANIC,
+  not_packaging: TypeDisposable.NOT_PACKAGING,
+  medicine: TypeDisposable.MEDICINE,
+  toxic: TypeDisposable.TOXIC,
+  device: TypeDisposable.DEVICE,
+  textile: TypeDisposable.TEXTILE,
+  bulky_waste: TypeDisposable.BULKY_WASTE,
+};
+
+

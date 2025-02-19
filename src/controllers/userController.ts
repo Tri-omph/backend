@@ -9,7 +9,10 @@ import {
   passwordRegex,
   usernameRegex,
   verifyEmail,
+  trashTypeSynonyms,
+  trashTypeMapping,
 } from '../utils';
+import { TypeBin, TypeDisposable } from '../types/enums';
 
 // Ce fichier contient les fonctions de contrôleur pour gérer les actions liées aux utilisateurs.
 // Les fonctions sont appelées depuis les routes définies dans `index.ts`. Chaque fonction
@@ -253,6 +256,137 @@ const updateCurrentUser: RequestHandler = async (req, res) => {
 };
 
 /**
+ * Fonction pour mettre à jour les poubelles à disposition de l'utilisateur actuel
+ */
+const updateCurrentBins: RequestHandler = async (req, res) => {
+  try {
+    const customerId = res.locals.user.id;
+
+    const isValidTypeDispos = (disposable: string[]) => {
+      return disposable.every((type) =>
+        Object.values(TypeDisposable).includes(type as TypeDisposable)
+      );
+    };
+
+    const isValidBin = (bin: string) => {
+      return Object.values(TypeBin).includes(bin as TypeBin);
+    };
+
+    if (!customerId) {
+      res.status(401).json({ message: 'Token invalide.' });
+      return;
+    }
+
+    const { bins } = req.body;
+
+    if (!bins) {
+      res.status(400).json({ message: 'Aucune modification indiquée.' });
+      return;
+    }
+
+    const customerRepository = AppDataSource.getRepository(Customer);
+    const customer = await customerRepository.findOneBy({ id: customerId });
+
+    if (!customer) {
+      res.status(404).json({ message: 'Utilisateur non trouvé.' });
+      return;
+    }
+
+    for (const theBin of bins) {
+      if (!theBin.bin) {
+        res.status(400).json({ message: `Aucune poubelle indiquée.` });
+        return;
+      }
+      if (!isValidBin(theBin.bin)) {
+        res.status(400).json({ message: `Type de poubelle inexistant.` });
+        return;
+      }
+
+      if (!theBin.disposable || theBin.disposable.length === 0) {
+        res.status(400).json({ message: `Aucun type de déchet indiqué.` });
+        return;
+      }
+      if (!isValidTypeDispos(theBin.disposable)) {
+        res.status(400).json({ message: `Type de déchet inexistant.` });
+        return;
+      }
+    }
+
+    customer.bins = bins;
+    await customerRepository.save(customer);
+
+    res.status(200).json({
+      message:
+        "Les poubelles de l'utilisateur ont été mises à jour avec succès.",
+    });
+  } catch (err) {
+    if (!isTest) console.error('Erreur lors de la MAJ de l utilisateur:', err);
+    res.status(500).json({ message: 'Erreur de serveur.' });
+  }
+};
+
+/**
+ * Fonction pour trouver dans quelle poubelle (selon celles de l'utilisateur) mettre un type de déchet
+ */
+const mapBin: RequestHandler = async (req, res) => {
+  try {
+    const customerId = res.locals.user.id;
+
+    const getTrashTypeEnum = (trashType: string): TypeDisposable | undefined => {
+      for (const [group, synonyms] of Object.entries(trashTypeSynonyms)) {
+        if (synonyms.includes(trashType.toLowerCase())) {
+          return trashTypeMapping[group];
+        }
+      }
+      return undefined;
+    };
+
+    const { dispos } = req.body;
+
+    if (!dispos) {
+      res.status(400).json({ message: 'Type de déchet requis.' });
+      return;
+    }
+
+    if (!customerId) {
+      res.status(401).json({ message: 'Token invalide.' });
+      return;
+    }
+
+    const customerRepository = AppDataSource.getRepository(Customer);
+    const customer = await customerRepository.findOneBy({ id: customerId });
+
+    if (!customer) {
+      res.status(404).json({ message: 'Utilisateur non trouvé.' });
+      return;
+    }
+
+    const trashTypeEnum = getTrashTypeEnum(dispos.toLowerCase());
+  
+    if (!trashTypeEnum) {
+      res.status(400).json({ message: `Type de déchet non repertorié.` });
+      return;
+    }
+
+    // Filter bins to find those that contain the requested trashType
+    const result = customer.bins
+      .filter((theBin) => theBin.disposable.includes(trashTypeEnum))
+      .map((theBin) => theBin.bin);
+
+    if (!result || result.length === 0) {
+      res.status(404).json({ message: 'Aucune poubelle prévue pour ce type de déchet.' });
+      return;
+    }
+
+    res.status(200).json(result); //TODO can return multiple bins!!!
+
+  } catch (err) {
+    if (!isTest) console.error('Erreur lors de la recherche de poubelles : ', err);
+    res.status(500).json({ message: 'Erreur de serveur.' });
+  }
+};
+
+/**
  * Fonction pour obtenir les information d'un utilisateur par id, pour les admins seulement
  */
 const getUserInfo: RequestHandler = async (req, res) => {
@@ -420,6 +554,8 @@ export default {
   createUser,
   getCurrentUser,
   updateCurrentUser,
+  updateCurrentBins,
+  mapBin,
   findUser,
   getUserInfo,
   loginUser,

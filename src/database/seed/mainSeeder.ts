@@ -22,6 +22,8 @@ const seedDatabase = async (dataSource: DataSource) => {
       restricted: false,
       admin: true,
       points: 0,
+      bins: [],
+      saveImage: false,
       scanHistory: [],
     };
 

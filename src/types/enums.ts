@@ -20,6 +20,9 @@ export enum TypeBin {
   RED = 'rouge',
   YELLOW = 'jaune',
   BLUE = 'bleu',
+  VERT = 'vert',
+  BLACK = 'noir',
+  BROWN = 'marron',
   ORANGE = 'orange',
   COMPOST = 'compost',
 }

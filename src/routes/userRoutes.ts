@@ -23,6 +23,10 @@ router.use(authMiddleware);
 
 router.get('/me', userController.getCurrentUser); // GET /api/v1/users/me
 router.patch('/me', userController.updateCurrentUser); // PATCH /api/v1/users/me
+
+router.patch('/bins/me', userController.updateCurrentBins); // PATCH /api/v1/users/bins/me
+router.post('/bin/me', userController.mapBin); // POST /api/v1/users/bins/me
+
 router.get('/history/me', historyController.getCurrentHistory); // GET /api/v1/users/history/me
 router.post('/history/me', historyController.addCurrentHistory); // POST /api/v1/users/history/me
 
