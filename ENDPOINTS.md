@@ -150,6 +150,85 @@ Met à jour le profil de l'utilisateur actuel, par exemple son email ou son nom 
 
 ---
 
+### PATCH /users/bins/me
+
+#### Description :
+
+Met à jour les poubelles à disposition de l'utilisateur actuel, une poubelle étant défini par son type (couleur) et les déchets contenus.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Corps de la requête :
+
+```json 
+{
+  "bins": [
+    {
+      "bin": "rouge", 
+      "disposable": [
+        "PLASTIC PACKAGING",  
+        "GLASS_PACKAGING"     
+      ]
+    },
+    {
+      "bin": "jaune", 
+      "disposable": [
+        "PAPER",
+        "TEXTILE" 
+      ]
+    }
+  ]
+}
+```
+
+#### Réponses :
+
+- **200 OK** : Poubelles de l'utilisateur mises à jour avec succès.
+  ```json
+  {
+    "message": "Les poubelles de l'utilisateur ont été mises à jour avec succès."
+  }
+  ```
+- **400 Bad Request** : Entrée invalide.
+- **401 Unauthorized** : Token JWT invalide ou manquant.
+- **422 Unprocessable Entity** : Erreur de formatage des entrées.
+
+---
+
+### POST /users/bins/me
+
+#### Description :
+
+Permet de trouver dans quelle poubelle (selon celles de l'utilisateur) mettre un type de déchet
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Corps de la requête :
+
+```json
+{
+  "dispos" : "verre"
+}
+```
+
+#### Réponses :
+
+- **200 OK** : Poubelle trouvée avec succès.
+  ```json
+  [
+    "vert"
+  ]
+  ```
+- **400 Bad Request** : Entrée invalide.
+- **401 Unauthorized** : Token JWT invalide ou expiré.
+- **422 Unprocessable Entity** : Erreur de formatage des entrées.
+
+---
+
 ### GET /users/info/:id
 
 #### Description :

@@ -298,7 +298,7 @@ const updateCurrentBins: RequestHandler = async (req, res) => {
         return;
       }
       if (!isValidBin(theBin.bin)) {
-        res.status(400).json({ message: `Type de poubelle inexistant.` });
+        res.status(422).json({ message: `Type de poubelle inexistant.` });
         return;
       }
 
@@ -307,7 +307,7 @@ const updateCurrentBins: RequestHandler = async (req, res) => {
         return;
       }
       if (!isValidTypeDispos(theBin.disposable)) {
-        res.status(400).json({ message: `Type de déchet inexistant.` });
+        res.status(422).json({ message: `Type de déchet inexistant.` });
         return;
       }
     }
@@ -364,7 +364,7 @@ const mapBin: RequestHandler = async (req, res) => {
     const trashTypeEnum = getTrashTypeEnum(dispos.toLowerCase());
   
     if (!trashTypeEnum) {
-      res.status(400).json({ message: `Type de déchet non repertorié.` });
+      res.status(422).json({ message: `Type de déchet non repertorié.` });
       return;
     }
 
@@ -373,12 +373,16 @@ const mapBin: RequestHandler = async (req, res) => {
       .filter((theBin) => theBin.disposable.includes(trashTypeEnum))
       .map((theBin) => theBin.bin);
 
+    /* const result = customer.bins
+      .find((theBin) => theBin.disposable.includes(trashTypeEnum))?.bin;
+    Si on force à nous renvoyer 1 seule valeur*/
+
     if (!result || result.length === 0) {
-      res.status(404).json({ message: 'Aucune poubelle prévue pour ce type de déchet.' });
+      res.status(422).json({ message: 'Aucune poubelle prévue pour ce type de déchet.' });
       return;
     }
 
-    res.status(200).json(result); //TODO can return multiple bins!!!
+    res.status(200).json(result);
 
   } catch (err) {
     if (!isTest) console.error('Erreur lors de la recherche de poubelles : ', err);
