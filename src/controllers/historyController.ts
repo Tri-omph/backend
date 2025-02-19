@@ -4,6 +4,7 @@ import { Customer } from '../models/Customer';
 import { isTest } from '../app';
 import { ScanHistory } from '../models/scanHistory';
 import { Buffer } from 'buffer';
+import { incrementCustomerPoints } from '../services/gamification';
 
 const getScanHistoryByCustomerId = async (
   customerId: number
@@ -95,8 +96,16 @@ const addCurrentHistory: RequestHandler = async (req, res) => {
 
     await historyRepository.save(newHistory);
 
+    // Ajouter les points proprement
+    await incrementCustomerPoints(customer);
+    // 🏆 Recharger les points pour s'assurer qu'on renvoie la valeur mise à jour
+    const updatedCustomer = await customerRepository.findOneBy({
+      id: customerId,
+    });
+
     res.status(201).json({
       message: "Entrée de l'historique créée avec succès.",
+      points: updatedCustomer ? updatedCustomer.points : customer.points, // Inclure les points
     });
   } catch (error) {
     if (!isTest)
