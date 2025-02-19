@@ -236,7 +236,18 @@ paths:
               $ref: '#/components/schemas/NewScanHistory'
       responses:
         '201':
-          description: Scan history successfully added.
+          description: Historique ajouté avec succès et mise à jour des points de l'utilisateur.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Entrée de l'historique créée avec succès."
+                  points:
+                    type: integer
+                    example: 3
         '400':
           description: Tous les champs sont requis.
         '401':

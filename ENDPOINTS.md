@@ -281,7 +281,13 @@ Ajoute une nouvelle entrée à l'historique des scans de l'utilisateur actuellem
 ```
 
 #### **Réponses :**
-- **201 Created** : Historique ajouté avec succès.
+- **201 Created** : Historique ajouté avec succès et le nombre de points correspondants.
+  ```json
+  {
+    "message": "Entrée de l'historique créée avec succès.",
+    "points": "3"
+  }
+  ```
 - **400 Bad Request** : Données de requête invalides.
 - **401 Unauthorized** : Token JWT invalide ou manquant.
 - **500 Internal Server Error** : Erreur du serveur lors de l'ajout de l'historique.
