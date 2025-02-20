@@ -10,6 +10,7 @@ import {
   usernameRegex,
   verifyEmail,
 } from '../utils';
+import { UserType } from '../types/enums';
 
 // Ce fichier contient les fonctions de contrôleur pour gérer les actions liées aux utilisateurs.
 // Les fonctions sont appelées depuis les routes définies dans `index.ts`. Chaque fonction
@@ -119,7 +120,7 @@ const loginUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    const token = generateJWT(customer.id, customer.admin);
+    const token = generateJWT(customer.id, customer.type === UserType.ADMIN);
 
     res.status(200).json({ token });
   } catch (error) {
@@ -280,8 +281,7 @@ export interface UserFilter {
   pointsMin: number;
   pointsMax: number;
   login: string;
-  restricted: boolean;
-  admin: boolean;
+  type: UserType;
 }
 
 const findUser: RequestHandler = async (req, res) => {
@@ -291,8 +291,7 @@ const findUser: RequestHandler = async (req, res) => {
     pointsMin,
     pointsMax,
     login,
-    restricted,
-    admin,
+    type,
   }: Record<keyof UserFilter, unknown> = req.body;
   // TODO: changer de params à query, donc de POST à GET
 
@@ -301,7 +300,7 @@ const findUser: RequestHandler = async (req, res) => {
 
     // Si aucun paramètre n'est donné, on prend tout
     if (
-      [id, username, pointsMin, pointsMax, login, restricted, admin]
+      [id, username, pointsMin, pointsMax, login, type]
         .map((e) => e === undefined || e === '')
         .reduce((p, c) => p && c, true)
     ) {
@@ -330,23 +329,9 @@ const findUser: RequestHandler = async (req, res) => {
         login: `%${login}%`,
       });
 
-    if (restricted !== undefined) {
-      if (typeof restricted !== 'boolean') {
-        res.status(422).send({ message: 'restricted invalide.' });
-        return;
-      }
-      query = query.andWhere('customer.restricted = :restricted', {
-        restricted,
-      });
-    }
-
-    if (admin !== undefined) {
-      if (typeof admin !== 'boolean') {
-        res.status(422).send({ message: 'admin invalide.' });
-        return;
-      }
-      query = query.andWhere('customer.admin = :admin', {
-        admin,
+    if (type !== undefined) {
+      query = query.andWhere('customer.type = :type', {
+        type,
       });
     }
 

@@ -21,3 +21,9 @@ export enum TypeDisposable {
   TEXTILE = 'TEXTILE',
   BULKY_WASTE = 'BULKY WASTE',
 }
+
+export enum UserType {
+  NORMAL = 0,
+  ADMIN = 1,
+  RESTRICTED = 2,
+}

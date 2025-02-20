@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { UserType } from '../types/enums';
 
 /** Middleware vérifiant l'utilisateur connecté est l'administrateur principal.
  *
@@ -15,7 +16,7 @@ export const mainAdminMiddleware: RequestHandler = (_req, res, next) => {
     return;
   }
 
-  if (!res.locals.user.admin || res.locals.user.id !== 0) {
+  if (res.locals.user.type != UserType.ADMIN || res.locals.user.id !== 0) {
     res.status(403).json({ message: 'Droits insuffisants.' });
     return;
   }

@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 
 import { Customer } from '../models/Customer';
 import { AppDataSource } from '../database/data-source';
+import { UserType } from '../types/enums';
 
 const customerRepository = AppDataSource.getRepository(Customer);
 
@@ -27,12 +28,12 @@ const promoteUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    if (user.admin) {
+    if (user.type === UserType.ADMIN) {
       res.status(409).json({ message: 'This user is already an admin' });
       return;
     }
 
-    user.admin = true;
+    user.type = UserType.ADMIN;
     await customerRepository.save(user);
 
     res.status(200).json({ message: 'User promoted to admin successfully' });
@@ -60,12 +61,12 @@ const demoteUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    if (!user.admin) {
+    if (user.type !== UserType.ADMIN) {
       res.status(409).json({ message: 'This user is not an admin' });
       return;
     }
 
-    user.admin = false;
+    user.type = UserType.NORMAL;
     await customerRepository.save(user);
 
     res.status(200).json({ message: 'User demoted successfully' });
@@ -93,19 +94,19 @@ const restrictUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    if (user.admin) {
+    if (user.type === UserType.ADMIN) {
       res
         .status(409)
         .json({ message: 'Cannot restrict an admin. Demote first.' });
       return;
     }
 
-    if (user.restricted) {
+    if (user.type === UserType.RESTRICTED) {
       res.status(409).json({ message: 'This user is already restricted' });
       return;
     }
 
-    user.restricted = true;
+    user.type = UserType.RESTRICTED;
     await customerRepository.save(user);
 
     res.status(200).json({ message: 'User restricted successfully' });
@@ -133,12 +134,12 @@ const freeUser: RequestHandler = async (req, res) => {
       return;
     }
 
-    if (!user.restricted) {
+    if (user.type !== UserType.RESTRICTED) {
       res.status(409).json({ message: 'This user is not restricted' });
       return;
     }
 
-    user.restricted = false;
+    user.type = UserType.NORMAL;
     await customerRepository.save(user);
 
     res

@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { UserType } from '../types/enums';
 
 /**
  * Ce fichier définit le modèle "User" qui représente un utilisateur dans l'application.
@@ -30,9 +31,6 @@ export class User {
   @Column()
   pwd_hash!: string;
 
-  @Column({ default: false })
-  restricted!: boolean;
-
-  @Column({ default: false })
-  admin!: boolean;
+  @Column({ enum: UserType, default: UserType.NORMAL })
+  type!: UserType;
 }
