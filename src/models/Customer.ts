@@ -1,6 +1,7 @@
 import { Entity, Column, OneToMany } from 'typeorm';
 import { User } from './User';
 import { ScanHistory } from './scanHistory';
+import { Warning } from './Warning';
 
 @Entity()
 export class Customer extends User {
@@ -12,4 +13,7 @@ export class Customer extends User {
 
   @OneToMany(() => ScanHistory, (scanHistory) => scanHistory.customer)
   scanHistory!: ScanHistory[];
+
+  @OneToMany(() => Warning, (warning) => warning.customer)
+  warnings!: Warning[];
 }

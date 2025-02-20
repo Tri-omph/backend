@@ -1,19 +1,47 @@
-import { Request, Response } from 'express';
+import { Request, Response, RequestHandler } from 'express';
 import { isTest } from '../app';
+import { handleWarning } from '../services/warningService';
+import { AppDataSource } from '../database/data-source';
+import { Customer } from '../models/Customer';
 
-const processBarcodeScan = async (req: Request, res: Response) => {
-  const { barcode } = req.query; // Extraire le barcode de l'URL
-
-  if (!barcode) {
-    res.status(400).json({ error: 'Le codebarre est requis !' });
-    return;
-  }
-
+const processBarcodeScan: RequestHandler = async (req, res) => {
   try {
+    if (!res.locals.user) {
+      res.status(401).json({ message: 'Authentification requise.' });
+      return;
+    }
+
+    const { barcode } = req.query; // Extraire le barcode de l'URL
+
+    if (!barcode) {
+      res.status(400).json({ error: 'Le codebarre est requis !' });
+      return;
+    }
+
+    const customerId = res.locals.user.id;
+
+    const customerRepository = AppDataSource.getRepository(Customer);
+    const customer = await customerRepository.findOneBy({ id: customerId });
+
+    if (!customer) {
+      res.status(404).json({ message: 'Utilisateur non trouvé' });
+      return;
+    }
+
+    const hasGotWarning = await handleWarning(customer, barcode.toString(), 5);
     const result = await getProductInfo(barcode.toString());
 
     if (!result.productFound) {
       res.status(404).json({ error: 'Produit non trouvé !' });
+      return;
+    }
+
+    if (hasGotWarning.confirmed) {
+      res.status(200).json({
+        ...result,
+        warning: true,
+        nbRequestsForBarcode: hasGotWarning.totalRequests,
+      });
       return;
     }
 

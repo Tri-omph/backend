@@ -287,8 +287,13 @@ Ajoute une nouvelle entrée à l'historique des scans de l'utilisateur actuellem
 ```
 
 #### **Réponses :**
-
-- **201 Created** : Historique ajouté avec succès.
+- **201 Created** : Historique ajouté avec succès et le nombre de points correspondants.
+  ```json
+  {
+    "message": "Entrée de l'historique créée avec succès.",
+    "points": "3"
+  }
+  ```
 - **400 Bad Request** : Données de requête invalides.
 - **401 Unauthorized** : Token JWT invalide ou manquant.
 - **500 Internal Server Error** : Erreur du serveur lors de l'ajout de l'historique.
@@ -567,6 +572,7 @@ Lever les restrictions imposées à un utilisateur avec l'ID indiqué.
 
 ---
 
+<<<<<<< HEAD
 ### GET /metrics/scaninfo
 
 #### Description :
@@ -679,6 +685,47 @@ Récupère les statistiques d'utilisation des poubelles pour tous les utilisateu
 #### Description :
 
 Récupère les statistiques des poubelles utilisées par l'utilisateur actuellement authentifié.
+=======
+### GET /leaderboard
+
+#### Description :
+
+Récupère les utilisateurs ayant les meilleurs scores. Le nombre d'utilisateurs à renvoyer est déterminé par le paramètre `limit`, qui est optionnel et par défaut à 100.
+
+#### Paramètres de requête :
+
+- **limit** (optionnel) : Le nombre d'utilisateurs à renvoyer (par défaut 100).
+
+#### Réponses :
+
+- **200 OK** : Liste des utilisateurs avec leurs scores, triée par ordre décroissant de points.
+  ```json
+  [
+    {
+      "username": "user1",
+      "points": 5000
+    },
+    {
+      "username": "user2",
+      "points": 4500
+    },
+    {
+      "username": "user3",
+      "points": 4000
+    }
+    ...
+  ]
+  ```
+- **422 Unprocessable Entity** : La valeur du paramètre `limit` est invalide.
+
+---
+
+### GET /leaderboard/me
+
+#### Description :
+
+Récupère le rang de l'utilisateur actuellement authentifié dans le classement.
+>>>>>>> feat/gamification
 
 #### En-têtes :
 
@@ -686,6 +733,7 @@ Récupère les statistiques des poubelles utilisées par l'utilisateur actuellem
 
 #### Réponses :
 
+<<<<<<< HEAD
 - **200 OK** : Données récupérées avec succès.
   ```json
   {
@@ -724,6 +772,15 @@ Récupère les statistiques d'utilisation des poubelles d'un utilisateur spécif
 - **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
 - **404 Not Found** : Utilisateur introuvable.
 - **500 Internal Server Error** : Erreur du serveur lors de la récupération des données.
+=======
+- **200 OK** : Le rang de l'utilisateur dans le classement.
+  ```json
+  {
+    "rank": 5
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou expiré.
+>>>>>>> feat/gamification
 
 ---
 

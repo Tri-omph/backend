@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middlewares/authenticate';
 import scanController from '../controllers/scanController';
 import { rateLimiter } from '../middlewares/rateLimiter';
 
@@ -12,6 +13,8 @@ const router = Router();
 const SECONDE = 1000;
 const MINUTE = 60 * SECONDE;
 const HEURE = 60 * MINUTE;
+
+router.use(authMiddleware);
 
 router.get('/barcode', scanController.processBarcodeScan); //POST /scan/barcode
 router.post('/image', scanController.processImageScan); //POST /scan/image
