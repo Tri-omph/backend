@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middlewares/authenticate';
 import scanController from '../controllers/scanController';
+import { rateLimiter } from '../middlewares/rateLimiter';
 
 // Ce fichier définit les routes de l'application. Il est responsable de gérer les chemins d'URL
 // qui pointent vers des actions spécifiques dans le contrôleur. Ici, nous avons les routes liées aux utilisateurs,
@@ -17,7 +18,5 @@ router.use(authMiddleware);
 
 router.get('/barcode', scanController.processBarcodeScan); //POST /scan/barcode
 router.post('/image', scanController.processImageScan); //POST /scan/image
-
-router.post('/waste-info', scanController.submitWasteInfo); // POST /waste-info
 
 export default router;

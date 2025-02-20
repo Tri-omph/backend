@@ -1,7 +1,7 @@
 export enum TypeDisposable {
   PLASTIC_PACKAGING = 'PLASTIC PACKAGING',
   CARDBOARD_PACKAGING = 'CARDBOARD PACKAGING',
-  PAPER = 'PAPER',
+  //PAPER = 'PAPER',
   GLASS_PACKAGING = 'GLASS PACKAGING',
   METAL_PACKAGING = 'METAL PACKAGING',
   USED = 'USED',
@@ -12,16 +12,26 @@ export enum TypeDisposable {
   MEDICINE = 'MEDICINE',
   TOXIC = 'TOXIC',
   DEVICE = 'DEVICE',
-  TEXTILE = 'TEXTILE',
+  //TEXTILE = 'TEXTILE',
   BULKY_WASTE = 'BULKY WASTE',
+  aluminium = 'aluminium',
+  cardboard = 'cardboard',
+  metal = 'metal',
+  ordures = 'ordures',
+  paper = 'paper',
+  plastic = 'plastic',
+  textile = 'textile',
+  glass = 'glass',
 }
 
 export enum TypeBin {
   RED = 'rouge',
   YELLOW = 'jaune',
-  BLUE = 'bleu',
+  BLUE = 'bleue',
   ORANGE = 'orange',
   COMPOST = 'compost',
+  GREEN = 'verte',
+  GREY = 'grise',
 }
 
 export enum ScanType {

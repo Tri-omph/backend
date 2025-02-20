@@ -228,12 +228,15 @@ Permet de chercher des utilisateurs en fonction de différents filtres.
 ### **GET /users/history/me**
 
 #### **Description:**
+
 Récupère l'historique des scans de l'utilisateur actuellement authentifié en utilisant son token JWT.
 
 #### **En-têtes :**
+
 - **Authorization** : Bearer `your-jwt-token`
 
 #### **Réponses :**
+
 - **200 OK** : Historique récupéré avec succès.
   ```json
   [
@@ -264,12 +267,15 @@ Récupère l'historique des scans de l'utilisateur actuellement authentifié en 
 ### **POST /users/history/me**
 
 #### **Description:**
+
 Ajoute une nouvelle entrée à l'historique des scans de l'utilisateur actuellement authentifié. Utilise le token JWT de l'utilisateur pour vérifier son identité et ajoute un enregistrement dans l'historique.
 
 #### **En-têtes :**
+
 - **Authorization** : Bearer `your-jwt-token`
 
 #### **Corps de la requête :**
+
 ```json
 {
   "method": "AI",
@@ -297,12 +303,15 @@ Ajoute une nouvelle entrée à l'historique des scans de l'utilisateur actuellem
 ### **GET /users/history/:id**
 
 #### **Description:**
+
 Récupère l'historique des scans d'un utilisateur spécifique en fonction de son ID. Cette route est protégée et nécessite un token JWT valide pour s'assurer que l'utilisateur a les droits nécessaires.
 
 #### **En-têtes :**
+
 - **Authorization** : Bearer `your-jwt-token`
 
 #### **Réponses :**
+
 - **200 OK** : Historique récupéré avec succès pour l'utilisateur spécifié.
   ```json
   [
@@ -563,6 +572,120 @@ Lever les restrictions imposées à un utilisateur avec l'ID indiqué.
 
 ---
 
+<<<<<<< HEAD
+### GET /metrics/scaninfo
+
+#### Description :
+
+Récupère les informations globales de scan pour tous les utilisateurs. Accessible uniquement aux administrateurs.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : Informations récupérées avec succès.
+  ```json
+  [
+    {
+      "ai": { "total": 15, "correct": 12 },
+      "barcode": { "total": 7, "correct": 5 },
+      "questions": { "total": 10, "correct": 9 }
+    }
+  ]
+  ```
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **500 Internal Server Error** : Erreur du serveur lors de la récupération des données.
+
+---
+
+### GET /metrics/scaninfo/me
+
+#### Description :
+
+Récupère les informations de scan de l'utilisateur actuellement authentifié.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : Informations récupérées avec succès.
+  ```json
+  {
+    "ai": { "total": 10, "correct": 8 },
+    "barcode": { "total": 5, "correct": 3 },
+    "questions": { "total": 7, "correct": 6 }
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou manquant.
+- **500 Internal Server Error** : Erreur du serveur lors de la récupération des données.
+
+---
+
+### GET /metrics/scaninfo/:id
+
+#### Description :
+
+Récupère les informations de scan d'un utilisateur spécifique à partir de son ID. Accessible uniquement aux administrateurs.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : Informations récupérées avec succès.
+  ```json
+  {
+    "ai": { "total": 20, "correct": 18 },
+    "barcode": { "total": 10, "correct": 6 },
+    "questions": { "total": 8, "correct": 7 }
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **404 Not Found** : Utilisateur introuvable.
+- **500 Internal Server Error** : Erreur du serveur lors de la récupération des données.
+
+---
+
+### GET /metrics/bins
+
+#### Description :
+
+Récupère les statistiques d'utilisation des poubelles pour tous les utilisateurs. Accessible uniquement aux administrateurs.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : Données récupérées avec succès.
+  ```json
+  [
+    {
+      "userId": 1,
+      "bleu": 5,
+      "jaune": 10,
+      "vert": 3,
+      "compost": 7
+    }
+  ]
+  ```
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **500 Internal Server Error** : Erreur du serveur lors de la récupération des données.
+
+---
+
+### GET /metrics/bins/me
+
+#### Description :
+
+Récupère les statistiques des poubelles utilisées par l'utilisateur actuellement authentifié.
+=======
 ### GET /leaderboard
 
 #### Description :
@@ -602,6 +725,7 @@ Récupère les utilisateurs ayant les meilleurs scores. Le nombre d'utilisateurs
 #### Description :
 
 Récupère le rang de l'utilisateur actuellement authentifié dans le classement.
+>>>>>>> feat/gamification
 
 #### En-têtes :
 
@@ -609,6 +733,46 @@ Récupère le rang de l'utilisateur actuellement authentifié dans le classement
 
 #### Réponses :
 
+<<<<<<< HEAD
+- **200 OK** : Données récupérées avec succès.
+  ```json
+  {
+    "bleu": 5,
+    "jaune": 10,
+    "vert": 3,
+    "compost": 7
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou manquant.
+- **500 Internal Server Error** : Erreur du serveur lors de la récupération des données.
+
+---
+
+### GET /metrics/bins/:id
+
+#### Description :
+
+Récupère les statistiques d'utilisation des poubelles d'un utilisateur spécifique à partir de son ID. Accessible uniquement aux administrateurs.
+
+#### En-têtes :
+
+- **Authorization** : Bearer `your-jwt-token`
+
+#### Réponses :
+
+- **200 OK** : Données récupérées avec succès.
+  ```json
+  {
+    "bleu": 2,
+    "jaune": 5,
+    "vert": 1,
+    "compost": 4
+  }
+  ```
+- **401 Unauthorized** : Token JWT invalide ou droits insuffisants.
+- **404 Not Found** : Utilisateur introuvable.
+- **500 Internal Server Error** : Erreur du serveur lors de la récupération des données.
+=======
 - **200 OK** : Le rang de l'utilisateur dans le classement.
   ```json
   {
@@ -616,6 +780,7 @@ Récupère le rang de l'utilisateur actuellement authentifié dans le classement
   }
   ```
 - **401 Unauthorized** : Token JWT invalide ou expiré.
+>>>>>>> feat/gamification
 
 ---
 
