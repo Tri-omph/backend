@@ -10,8 +10,8 @@ const rateLimit = rateLimiter(1, 6 * 1000);
 
 router.use(authMiddleware); // Authentifié
 
-router.get('/scaninfo/me', rateLimit, metricsController.getMyScanInfo); // GET /api/v1/metrics/scaninfo/me
-router.get('/bins/me', rateLimit, metricsController.getMyBins); // GET /api/v1/metrics/bins/me
+router.get('/scaninfo/me', metricsController.getMyScanInfo); // GET /api/v1/metrics/scaninfo/me
+router.get('/bins/me', metricsController.getMyBins); // GET /api/v1/metrics/bins/me
 
 router.use(adminMiddleware); // Admin
 
