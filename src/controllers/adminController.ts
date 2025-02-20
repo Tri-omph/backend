@@ -65,6 +65,11 @@ const demoteUser: RequestHandler = async (req, res) => {
       return;
     }
 
+    if (user.username === 'mainadmin') {
+      res.status(409).json({ message: 'This user is the mainadmin' });
+      return;
+    }
+
     user.admin = false;
     await customerRepository.save(user);
 
