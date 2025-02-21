@@ -113,7 +113,7 @@ const getUserScanInfo: RequestHandler = async (req, res) => {
 
     const customerIdStr = req.params.id;
 
-    if (isValidId(customerIdStr)) {
+    if (!isValidId(customerIdStr)) {
       res.status(422).json({ message: 'ID non numérique.' });
       return;
     }
@@ -180,7 +180,7 @@ const getUserBins: RequestHandler = async (req, res) => {
 
     const customerIdStr = req.params.id;
 
-    if (isValidId(customerIdStr)) {
+    if (!isValidId(customerIdStr)) {
       res.status(422).json({ message: 'ID non numérique.' });
       return;
     }

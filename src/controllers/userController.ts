@@ -10,6 +10,7 @@ import {
   usernameRegex,
   verifyEmail,
 } from '../utils';
+import { Warning } from '../models/Warning';
 
 // Ce fichier contient les fonctions de contrôleur pour gérer les actions liées aux utilisateurs.
 // Les fonctions sont appelées depuis les routes définies dans `index.ts`. Chaque fonction
@@ -310,6 +311,7 @@ const findUser: RequestHandler = async (req, res) => {
 
   try {
     const customerRepository = AppDataSource.getRepository(Customer);
+    const warningRepository = AppDataSource.getRepository(Warning);
 
     // Si aucun paramètre n'est donné, on prend tout
     if (
@@ -318,7 +320,17 @@ const findUser: RequestHandler = async (req, res) => {
         .reduce((p, c) => p && c, true)
     ) {
       const customers = await customerRepository.find();
-      res.status(200).json(customers);
+      res.status(200).json(
+        await Promise.all(
+          customers.map(async (customer) => ({
+            ...customer,
+            hasWarnings:
+              (await warningRepository.count({
+                where: { customer: { id: customer.id } },
+              })) > 0,
+          }))
+        )
+      );
       return;
     }
 
