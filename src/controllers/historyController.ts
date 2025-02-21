@@ -3,7 +3,6 @@ import { AppDataSource } from '../database/data-source';
 import { Customer } from '../models/Customer';
 import { isTest } from '../app';
 import { ScanHistory } from '../models/scanHistory';
-import { Buffer } from 'buffer';
 import { incrementCustomerPoints } from '../services/gamification';
 
 const getScanHistoryByCustomerId = async (
@@ -44,7 +43,13 @@ const getCurrentHistory: RequestHandler = async (_req, res) => {
       return;
     }
 
-    res.status(200).json(history);
+    // Convertir l'image en Base64 (si présente)
+    const historyWithImage = history.map((item) => ({
+      ...item,
+      image: item.image ? item.image.toString('base64') : null, // Conversion en base64
+    }));
+
+    res.status(200).json(historyWithImage);
   } catch (error) {
     if (!isTest)
       console.error("Erreur lors de la récupération de l'utilisateur:", error);
@@ -59,19 +64,11 @@ const addCurrentHistory: RequestHandler = async (req, res) => {
       return;
     }
 
-    const { method, isValid, poubelle, type, image } = req.body;
+    const { method, isValid, poubelle, type } = req.body;
     const customerId = res.locals.user.id;
 
-    if (
-      !method ||
-      isValid === undefined ||
-      !poubelle ||
-      !type ||
-      (image !== undefined && !Buffer.isBuffer(image))
-    ) {
-      res
-        .status(400)
-        .json({ message: 'Tous les champs sont requis (sauf image).' });
+    if (!method || isValid === undefined || !poubelle || !type) {
+      res.status(400).json({ message: 'Tous les champs sont requis.' });
       return;
     }
 
@@ -84,6 +81,11 @@ const addCurrentHistory: RequestHandler = async (req, res) => {
       return;
     }
 
+    // 🖼️ Récupérer l’image (si présente) en `Buffer`
+    const imageBuffer = req.file ? req.file.buffer : undefined;
+
+    console.log('Image buffer:', req.file); // Vérifie la valeur de imageBuffer
+
     const newHistory = historyRepository.create({
       customer,
       method,
@@ -91,26 +93,28 @@ const addCurrentHistory: RequestHandler = async (req, res) => {
       poubelle,
       type,
       date: new Date(),
-      image: image ?? null,
+      image: imageBuffer,
     });
 
     await historyRepository.save(newHistory);
 
-    // Ajouter les points proprement
+    // Ajouter les points
     await incrementCustomerPoints(customer);
-    // 🏆 Recharger les points pour s'assurer qu'on renvoie la valeur mise à jour
+
+    // 🏆 Recharger les points pour envoyer les points mis à jour
     const updatedCustomer = await customerRepository.findOneBy({
       id: customerId,
     });
 
     res.status(201).json({
       message: "Entrée de l'historique créée avec succès.",
-      points: updatedCustomer ? updatedCustomer.points : customer.points, // Inclure les points
+      points: updatedCustomer ? updatedCustomer.points : customer.points,
     });
+    return;
   } catch (error) {
-    if (!isTest)
-      console.error("Erreur lors de l'ajout dans l'historique :", error);
+    console.error("Erreur lors de l'ajout dans l'historique :", error);
     res.status(500).json({ message: 'Erreur interne.' });
+    return;
   }
 };
 

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 
 import userController from '../controllers/userController';
 import historyController from '../controllers/historyController';
@@ -11,6 +12,9 @@ import { rateLimiter } from '../middlewares/rateLimiter';
 // comme la création d'un utilisateur, l'authentification, etc.
 // Les contrôleurs correspondants seront importés et utilisés pour traiter les demandes.
 
+// Configuration de multer pour stocker l'image en mémoire. Cela concerne l'ajout dans l'historique !
+const upload = multer({ storage: multer.memoryStorage() });
+
 const router = Router();
 
 const SECONDE = 1000;
@@ -22,19 +26,17 @@ router.post('/auth', userController.loginUser); //POST /api/v1/auth
 
 router.use(authMiddleware);
 
-router.get('/me', rateLimiter(20, MINUTE), userController.getCurrentUser); // GET /api/v1/users/me
-router.patch('/me', rateLimiter(5, HEURE), userController.updateCurrentUser); // PATCH /api/v1/users/me
+router.get('/me', userController.getCurrentUser); // GET /api/v1/users/me
+router.patch('/me', userController.updateCurrentUser); // PATCH /api/v1/users/me
 
-router.get(
-  '/history/me',
-  rateLimiter(10, MINUTE),
-  historyController.getCurrentHistory
-); // GET /api/v1/users/history/me
+router.get('/history/me', historyController.getCurrentHistory); // GET /api/v1/users/history/me
+
+// 🖼️ Ajout de `upload.single('file')` pour gérer l'image
 router.post(
   '/history/me',
-  rateLimiter(10, MINUTE),
+  upload.single('file'),
   historyController.addCurrentHistory
-); // POST /api/v1/users/history/me
+);
 
 router.use(adminMiddleware);
 
